@@ -6,6 +6,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: typst-community/setup-typst@v4.3.0
+      - name: Query if pre release
+        run: echo "pre_release=$(typst query paper/main.typ "<pre_release>" --field value --one)" >> $GITHUB_OUTPUT
       - name: Compile main.typ
         run: typst compile paper/main.typ paper.pdf
       - name: Upload artifact
@@ -36,4 +38,5 @@ jobs:
           tag_name: paper-latest
           name: Paper
           files: paper.pdf
+          prerelease: ${{ needs.compile.outputs.pre_release }}
           generate_release_notes: false

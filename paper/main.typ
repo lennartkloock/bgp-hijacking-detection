@@ -1,12 +1,15 @@
 #import "util.typ": accent_color
 #import "abbreviations.typ": abbr
 
+#let pre_release = true
+#metadata(pre_release) <pre_release>
+
 #set page(paper: "a4", margin: 26.5mm)
 #set text(lang: "de", size: 11pt)
 #set pagebreak(weak: true)
 #set par(justify: true)
 
-#set page(background: rotate(24deg, text(22pt, fill: rgb("#dddddd"))[*ENTWURF*]))
+#set page(background: rotate(24deg, text(22pt, fill: rgb("#dddddd"))[*ENTWURF*])) if pre_release
 
 #show heading: name => {
   set text(fill: accent_color)
