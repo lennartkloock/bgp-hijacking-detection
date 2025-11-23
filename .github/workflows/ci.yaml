@@ -4,11 +4,12 @@ jobs:
   compile:
     runs-on: ubuntu-latest
     outputs:
-      pre_release: ${{ steps.step3.outputs.pre_release }}
+      pre_release: ${{ steps.query.outputs.pre_release }}
     steps:
       - uses: actions/checkout@v5
       - uses: typst-community/setup-typst@v4.3.0
-      - name: Query if pre release
+      - id: query
+        name: Query if pre release
         run: echo "pre_release=$(typst query paper/main.typ "<pre_release>" --field value --one)" >> $GITHUB_OUTPUT
       - name: Compile main.typ
         run: typst compile paper/main.typ paper.pdf
