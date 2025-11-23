@@ -10,10 +10,22 @@ jobs:
         uses: typst-community/setup-typst@v4.3.0
       - name: Compile main.typ
         run: typst compile paper/main.typ paper.pdf
+      - name: Upload artifact
+        uses: actions/upload
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper
+          path: paper.pdf
   release:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    needs: compile
     steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: paper
       - name: Delete old release
         env:
           GH_TOKEN: ${{ github.token }}
