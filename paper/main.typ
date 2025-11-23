@@ -1,4 +1,5 @@
 #import "util.typ": accent_color
+#import "abbreviations.typ": abbr
 
 #set page(paper: "a4", margin: 26.5mm)
 #set text(lang: "de", size: 11pt)
@@ -47,10 +48,14 @@
   numbering: "1",
   number-align: right + bottom,
   header: context {
+    // Show current chapter in heading when it doesn't start on this page
     if get_first_heading_on_page(here()) == none {
-      let previous_headings = query(heading.where(level: 1).before(here()))
+      let selector = selector(heading.where(level: 1).before(here()))
+      let previous_headings = query(selector)
       if previous_headings.len() > 0 {
-        align(right, smallcaps(previous_headings.last().body))
+        let h_body = previous_headings.last().body
+        let h_count = counter(selector).display()
+        align(right, smallcaps[#h_count #h_body])
       }
     }
   }
@@ -58,4 +63,14 @@
 #counter(page).update(1)
 #include "introduction.typ"
 
-#include "content1.typ"
+= Hauptteil
+
+- Vorstellung der Grundlagen
+- Präzisierung der Fragestellung
+- Darstellung möglicher Lösungsansätze
+- Bewertung der Lösungsansätze
+
+#include "conclusion.typ"
+#include "bibliography.typ"
+#include "figures.typ"
+#include "abbreviations.typ"

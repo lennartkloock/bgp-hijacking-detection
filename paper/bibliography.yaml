@@ -1,0 +1,18 @@
+# jigsaw:
+#   type: Web
+#   author: Heard, Stephen B.
+#   title: What jigsaw puzzles could have taught me about writing – if I’d listened
+#   date: 2021
+#   organization: Scientist Sees Squirrel -- Seldom original. Often wrong. Occasionally interesting
+#   url:
+#     value: https://scientistseessquirrel.wordpress.com/2021/03/30/what-jigsaw-puzzles-could-have-taught-me-about-writing-if-id-listened
+#     date: 2021-04-01
+# latex_book:
+#   type: Book
+#   author: Lamport, Leslie
+#   title: "LaTeX: A Document Preparation System"
+#   publisher: Addison Wesley Professional
+#   edition: 2
+#   date: 1994-06
+#   serial-number:
+#     isbn: "0-2015-2983-1"
