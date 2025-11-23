@@ -1,20 +1,19 @@
-name: Release the paper
-on:
-  workflow_run:
-    workflows:
-      - Compile the paper
-    branches:
-      - main
-    types:
-      - completed
+name: Compile the paper
+on: push
 jobs:
-  release:
+  compile:
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: paper
+      - name: Checkout repo
+        uses: actions/checkout@v5
+      - name: Setup Typst
+        uses: typst-community/setup-typst@v4.3.0
+      - name: Compile main.typ
+        run: typst compile paper/main.typ paper.pdf
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
       - name: Delete old release
         run: gh release delete paper-latest --cleanup-tag
       - name: Create new release
