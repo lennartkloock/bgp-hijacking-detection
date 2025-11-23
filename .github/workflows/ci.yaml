@@ -24,6 +24,7 @@ jobs:
         with:
           name: paper
       - name: Delete old release
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release delete paper-latest --cleanup-tag
