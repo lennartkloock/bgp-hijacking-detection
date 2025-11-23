@@ -1,5 +1,5 @@
 name: Compile the paper
-on: [push]
+on: push
 jobs:
   compile:
     runs-on: ubuntu-latest
