@@ -3,6 +3,8 @@ on: push
 jobs:
   compile:
     runs-on: ubuntu-latest
+    outputs:
+      pre_release: ${{ steps.step3.outputs.pre_release }}
     steps:
       - uses: actions/checkout@v5
       - uses: typst-community/setup-typst@v4.3.0
