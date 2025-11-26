@@ -66,9 +66,14 @@
 #counter(page).update(1)
 #include "introduction.typ"
 
-= Hauptteil
+= Was ist BGP Hijacking?
 
 - Vorstellung der Grundlagen
+- Welche Arten von BGP Hijacking gibt es?
+- Welche Auswirkungen hat BGP Hijacking?
+
+= Erkennung von MOAS Konflikten mit TLS
+
 - Präzisierung der Fragestellung
 - Darstellung möglicher Lösungsansätze
 - Bewertung der Lösungsansätze

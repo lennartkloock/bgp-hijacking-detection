@@ -1,4 +1,4 @@
-= Zusammenfassung
+= Fazit
 
 - Erkenntnisse zusammenfassen
 - Muss ohne Lesen des Hauptteils verständlich sein
