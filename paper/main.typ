@@ -1,5 +1,4 @@
 #import "util.typ": accent_color
-#import "abbreviations.typ": abbr
 
 #let pre_release = true
 #metadata(pre_release) <pre_release>
@@ -30,13 +29,9 @@
 
 #set page(numbering: "i", number-align: right + bottom)
 #counter(page).update(1)
+
 #include "statement.typ"
-
-#heading(outlined: false)[Abstract]
-
-- Auf Englisch
-- < 300 Zeichen
-
+#include "abstract.typ"
 #include "toc.typ"
 
 #let get_first_heading_on_page(loc) = {
@@ -70,41 +65,15 @@
   }
 )
 #counter(page).update(1)
-#include "introduction.typ"
 
-= Grundlagen
-
-- Vorstellung der Grundlagen
-
-= Verwandte Arbeiten
-
-- Welche Arten von BGP Hijacking gibt es?
-- Welche Auswirkungen hat BGP Hijacking?
-
-= Datenquellen
-
-- Grund truth
-- Mögliche Probleme der Quelle
-- Stealthy attacks
-
-= Design/Konzept
-
-- Darstellung möglicher Lösungsansätze
-- Bewertung der Lösungsansätze
-
-= Implementierung
-
-- Implementierungsdetails
-- Probleme die aufgetreten sind
-- Libraries
-- Codebeispiele
-
-= Evaluation
-
-- Auswertung
-- Ergebnisse
-
-#include "conclusion.typ"
+#include "1_introduction.typ"
+#include "2_fundamentals.typ"
+#include "3_related_work.typ"
+#include "4_data_sources.typ"
+#include "5_concept.typ"
+#include "6_implementation.typ"
+#include "7_evaluation.typ"
+#include "8_conclusion.typ"
 #include "bibliography.typ"
 #include "figures.typ"
-#include "abbreviations.typ"
+// #include "abbreviations.typ"
