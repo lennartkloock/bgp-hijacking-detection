@@ -31,6 +31,12 @@
 #set page(numbering: "i", number-align: right + bottom)
 #counter(page).update(1)
 #include "statement.typ"
+
+#heading(outlined: false)[Abstract]
+
+- Auf Englisch
+- < 300 Zeichen
+
 #include "toc.typ"
 
 #let get_first_heading_on_page(loc) = {
@@ -66,17 +72,37 @@
 #counter(page).update(1)
 #include "introduction.typ"
 
-= Was ist BGP Hijacking?
+= Grundlagen
 
 - Vorstellung der Grundlagen
+
+= Verwandte Arbeiten
+
 - Welche Arten von BGP Hijacking gibt es?
 - Welche Auswirkungen hat BGP Hijacking?
 
-= Erkennung von MOAS Konflikten mit TLS
+= Datenquellen
 
-- Präzisierung der Fragestellung
+- Grund truth
+- Mögliche Probleme der Quelle
+- Stealthy attacks
+
+= Design/Konzept
+
 - Darstellung möglicher Lösungsansätze
 - Bewertung der Lösungsansätze
+
+= Implementierung
+
+- Implementierungsdetails
+- Probleme die aufgetreten sind
+- Libraries
+- Codebeispiele
+
+= Evaluation
+
+- Auswertung
+- Ergebnisse
 
 #include "conclusion.typ"
 #include "bibliography.typ"
