@@ -2,6 +2,8 @@
 
 ## Literatur
 
+- [BGPalerter](https://github.com/nttgin/BGPalerter)
+  - Nur um eigenes Netzwerk zu monitoren, nicht global anwendbar
 - [Detecting Bogus BGP Route Information: Going Beyond Prefix Hijacking](https://ieeexplore.ieee.org/document/4550358)
 - [PHAS: A Prefix Hijack Alert System](https://www.usenix.org/legacy/event/sec06/tech/full_papers/lad/lad.pdf)
 - [Towards uncovering BGP hijacking attacks](https://pastel.hal.science/tel-01412800)
@@ -13,3 +15,7 @@
 - [Understanding BGP misconfiguration](https://dl.acm.org/doi/10.1145/964725.633027)
   - Wie viele BGP misconfigurations gibt es?
   - 2002!
+
+## Idea: Crowd-sourcing hijacking detection
+
+- [Crowd-based detection of routing anomalies on the internet](https://ieeexplore.ieee.org/abstract/document/7346850)

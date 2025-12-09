@@ -71,6 +71,12 @@
 #include "3_related_work.typ"
 #include "4_data_sources.typ"
 #include "5_concept.typ"
+
+#place(center)[
+  #line(length: 50%)
+  Bis hier? bis zum 09.01.2026
+]
+
 #include "6_implementation.typ"
 #include "7_evaluation.typ"
 #include "8_conclusion.typ"
