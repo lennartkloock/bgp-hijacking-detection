@@ -1,4 +1,5 @@
 #import "util.typ": accent_color, date, author
+#import "@preview/dashy-todo:0.1.3": todo
 
 #set document(author: author, title: "BGP Hijacking Detection")
 #show title: name => {
@@ -40,7 +41,7 @@
     #text(size: 10pt)[Universität Bonn]
   ]
 
-  #date()
+  #date()#todo[ist auf Englisch]
 ]
 
 #pagebreak()
