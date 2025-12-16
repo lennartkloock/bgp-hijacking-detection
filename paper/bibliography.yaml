@@ -7,7 +7,26 @@ rfc1654:
   abstract: "This document defines an inter-autonomous system routing protocol for the Internet. [STANDARDS-TRACK]"
   publisher: RFC Editor
   page-total: 56
-  url: https://www.rfc-editor.org/info/rfc1654
+  url:
+    value: https://www.rfc-editor.org/info/rfc1654
+    date: 2025-12-15
   serial-number:
     doi: 10.17487/RFC1654
   language: en
+youtube-hijack:
+  type: Web
+  title: "YouTube Hijacking: A RIPE NCC RIS case study"
+  author: RIPE NCC
+  date: 2008-03-17
+  url:
+    value: https://www.ripe.net/about-us/news/youtube-hijacking-a-ripe-ncc-ris-case-study/
+    date: 2025-12-15
+crypto-hijack:
+  type: Web
+  title: "How 3 hours of inaction from Amazon cost cryptocurrency holders \\$235,000"
+  author: Goodin, Dan
+  publisher: Ars Technica
+  date: 2022-09-23
+  url:
+    value: https://arstechnica.com/information-technology/2022/09/how-3-hours-of-inaction-from-amazon-cost-cryptocurrency-holders-235000/
+    date: 2025-12-25
