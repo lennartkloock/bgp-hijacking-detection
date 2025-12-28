@@ -2,11 +2,11 @@
 
 # https://datatracker.ietf.org/doc/rfc1654/bibtex
 rfc1654:
+  # type: Reference
   type: Misc
   title: A Border Gateway Protocol 4 (BGP-4)
   author: ["Rekhter, Yakov", "Li, Tony"]
   date: 1994-06
-  abstract: "This document defines an inter-autonomous system routing protocol for the Internet. [STANDARDS-TRACK]"
   publisher: RFC Editor
   page-total: 56
   url:
@@ -32,3 +32,27 @@ crypto-hijack:
   url:
     value: https://arstechnica.com/information-technology/2022/09/how-3-hours-of-inaction-from-amazon-cost-cryptocurrency-holders-235000/
     date: 2025-12-25
+ru-RPKI-ready:
+  type: Article
+  title: "ru-RPKI-ready: the Road Left to Full ROA Adoption"
+  author: ["Gouda, Deepak", "Fontugne, Romain", "Testart, Cecilia"]
+  date: 2025-11-21
+  publisher: Association for Computing Machinery
+  url: https://doi.org/10.1145/3730567.3764452
+  serial-number:
+    doi: 10.1145/3730567.3764452
+  page-total: 15
+  page-range: 415-429
+  parent:
+    type: Proceedings
+    location: New York, NY, USA
+    title: Proceedings of the 2025 ACM Internet Measurement Conference
+    serial-number:
+      isbn: 9798400718601
+quentin:
+  type: Thesis
+  title: Towards uncovering BGP hijacking attacks
+  author: Jacquemart, Quentin
+  url: https://pastel.hal.science/tel-01412800
+  date: 2015-10
+  organization: Télécom ParisTech
