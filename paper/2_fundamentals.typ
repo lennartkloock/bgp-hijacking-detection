@@ -40,11 +40,11 @@ Wenn mit einer UPDATE-Nachricht eine neue Route verkündet wird, enthält sie ei
   #image(width: 30em, "images/bgp_updates.drawio.pdf")
 ] <bgp_update_example>
 
-@bgp_update_example veranschaulicht drei echte BGP-UPDATE-Nachrichten für den IPv4-Präfix `186.1.198.0/24`.
-Eine der UPDATE-Nachrichten wird von einem Router in AS1299 zu einem Router in AS680 geschickt.
-Die in der Nachricht enthaltenen Attribute sagen AS680, dass der Präfix `186.1.198.0/24` über den Pfad $"AS1299" -> "AS32270" -> "AS52260"$ (AS_PATH) zu erreichen ist indem eine Verbindung mit dem Router `190.102.95.102` (NEXT_HOP) aufgebaut wird.
-Diese Information merkt sich der Router von AS680 in seiner Routing-Tabelle und kann sie somit abrufen sobald er in Zukunft ein Paket an eine Adresse aus dem Präfix empfängt.
-Analog passiert das gleiche bei den anderen UPDATE-Nachrichten.
+@bgp_update_example veranschaulicht drei echte BGP-UPDATE-Nachrichten, die den IPv4-Präfix `186.1.198.0/24` betreffen und am 27. Dezember 2025 mithilfe von RIPE RIS aufgezeichnet wurden.
+Die erste Nachricht wird von einem Router von Télécommunications de Haití (AS 52260) zu einem Router der LD Telecommunications Inc. (AS 32270) geschickt und verkündet, dass der Präfix `186.1.198.0/24` über den Router mit der IP-Adresse `190.102.95.102` (NEXT_HOP) zu erreichen ist.
+Diese Nachricht wird von AS zu AS weitergeschickt bis sie schließlich einen Router des DFN (AS 680) erreicht.
+Die in der Nachricht enthaltenen Attribute sagen dem DFN (AS 680), dass der Präfix `186.1.198.0/24` über den Pfad $"AS 1299" -> "AS 32270" -> "AS 52260"$ zu erreichen ist indem eine Verbindung mit einem bestimmten Router von Arelion (AS 1299) aufgebaut wird.
+Diese Information merkt sich der Router in seiner Routing-Tabelle und kann sie somit abrufen sobald er in Zukunft ein Paket an eine Adresse aus dem Präfix empfängt.
 
 == Prefix-Hijacking
 
