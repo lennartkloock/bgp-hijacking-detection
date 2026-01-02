@@ -17,8 +17,8 @@ Auch in den letzten Jahren hat das Thema nicht an Relevanz verloren.
 Diese und viele weitere Fälle zeigen, dass BGP-Hijacking weiterhin ein großes Problem des Internets darstellt.
 
 Ziel dieser Arbeit ist es eine verlässliche Methode zu entwickeln um potenzielle BGP-Hijackings mithilfe von öffentlichen Datenquellen zu erkennen und in Echtzeit zu bewerten.
-Dabei soll nicht nur die Kontrollebene#todo[Besser "control plane"?], sondern auch die Datenebene#todo[Besser "control plane"?] eingesetzt werden um Erkenntnisse über einen Angriff zu sammeln.
-Es kann von Vorteil sein die Datenebene mit in die Analyse einzubeziehen, da dort möglicherweise Dienste betrieben werden, die Auskunft über den Betreiber dieser geben können.
+Dabei soll nicht nur die _Control Plane_, sondern auch die _Data Plane_ eingesetzt werden um Erkenntnisse über einen Angriff zu sammeln.
+Es kann von Vorteil sein die _Data Plane_ mit in die Analyse einzubeziehen, da dort möglicherweise Dienste betrieben werden, die Auskunft über den Betreiber dieser geben können.
 Dienste, die TLS einsetzen, wie zum Beispiel Web-Server oder Email-Server, können dabei besonders hilfreich sein, da TLS kryptografische Zertifikate nutzt um die Authentizität eines Servers bestätigen zu können.
 Diese Arbeit soll die Frage klären, ob das Abrufen von TLS-Zertifikaten als zuverlässige Methode genutzt werden kann um BGP-Hijackings zu erkennen.
 

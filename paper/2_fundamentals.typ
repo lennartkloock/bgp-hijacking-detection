@@ -4,13 +4,13 @@
 
 Im Folgenden werden die Grundlagen zum Thema Inter-AS-Routing und BGP-Hijacking dargestellt.
 
-Was umgangssprachlich "das Internet" genannt wird ist ein dezentrales Netzwerk von tausenden autonomen Systemen (kurz: AS) bestehend aus Routern und anderen Netzwerkgeräten, die Daten untereinander austauschen.
+Das Internet ist ein dezentrales Netzwerk von tausenden autonomen Systemen (kurz: AS) bestehend aus Routern und anderen Netzwerkgeräten, die Daten untereinander austauschen.
 
 Um einzelne Netzwerkgeräte zu adressieren werden IP-Adressen genutzt, welche nichts anderes als 32-bit (IPv4) bzw. 128-bit (IPv6) Zahlen sind.
 Um ganze Netzwerke, also mehrere IP-Adressen adressieren zu können kommen IP-Präfixe zum Einsatz.
 Ein IP-Präfix erlaubt es mehrere aufeinanderfolgende IP-Adressen als Einheit zu adressieren und erleichtert somit den gebündelten Austausch von Routing-Informationen.
-Das ist sinnvoll, da auch die Nutzungsrechte von IP-Adressen in Einheiten von Präfixen gehandelt bzw. zugeteilt werden.
-In dieser Arbeit werden IP-Präfixe in der CIDR-Notation angegeben.
+Dadurch wird das Handeln und Verwalten von IP-Adressen und deren Nutzungsrechten vereinfacht.
+In dieser Arbeit werden IP-Präfixe in der _Classless Inter-Domain Routing_ (kurz: CIDR) Notation dargestellt.
 
 == BGP
 
@@ -40,7 +40,7 @@ Wenn mit einer UPDATE-Nachricht eine neue Route verkündet wird, enthält sie ei
   #image(width: 30em, "images/bgp_updates.drawio.pdf")
 ] <bgp_update_example>
 
-@bgp_update_example veranschaulicht drei echte BGP-UPDATE-Nachrichten, die den IPv4-Präfix `186.1.198.0/24` betreffen und am 27. Dezember 2025 mithilfe von RIPE RIS aufgezeichnet wurden.
+@bgp_update_example zeigt beispielhaft drei echte BGP-UPDATE-Nachrichten, die den IPv4-Präfix `186.1.198.0/24` betreffen und am 27. Dezember 2025 mithilfe von RIPE RIS aufgezeichnet wurden.
 Die erste Nachricht wird von einem Router von Télécommunications de Haití (AS 52260) zu einem Router der LD Telecommunications Inc. (AS 32270) geschickt und verkündet, dass der Präfix `186.1.198.0/24` über den Router mit der IP-Adresse `190.102.95.102` (NEXT_HOP) zu erreichen ist.
 Diese Nachricht wird von AS zu AS weitergeschickt bis sie schließlich einen Router des DFN (AS 680) erreicht.
 Die in der Nachricht enthaltenen Attribute sagen dem DFN (AS 680), dass der Präfix `186.1.198.0/24` über den Pfad $"AS 1299" -> "AS 32270" -> "AS 52260"$ zu erreichen ist indem eine Verbindung mit einem bestimmten Router von Arelion (AS 1299) aufgebaut wird.
@@ -62,7 +62,7 @@ Also ist 40% bis 50% des globalen Adressbereichs nicht von RPKI-Zertifikaten abg
 
 === MOAS-Konflikt
 
-Ein Multiple-Origin-AS-Konflikt (kurz: MOAS-Konflikt) ist ein spezieller Fall eines Prefix-Hijacking-Angriffs, der für diese Arbeit von besonderer Interesse ist.
+Ein Multiple-Origin-AS-Konflikt (kurz: MOAS-Konflikt) ist ein spezieller Fall eines Prefix-Hijacking-Angriffs, der für diese Arbeit von besonderem Interesse ist.
 In diesem Fall gibt ein Angreifer-AS $A$ einen Präfix $p$ als seinen eigenen bekannt, während das rechtmäßige Origin-AS $T$ den Präfix ebenfalls weiter verkündet.
 $O$ wird auch True-Origin-AS genannt.
 Dadurch entstehen zwei konkurrierende Routen für denselben Präfix $p$.
@@ -71,6 +71,9 @@ In der Regel wird die Route mit dem kürzeren AS-Pfad bevorzugt.
 Dadurch kann es passieren, dass von bestimmten ASs der Datenverkehr für den Präfix $p$ zum Angreifer-AS $A$ umgeleitet wird, obwohl $T$ der rechtmäßige Inhaber des Präfixes ist.
 Das teilt das Netzwerk effektiv in zwei Partitionen, da die Router meistens den kürzesten Weg zum Ziel bevorzugen.
 In der einen Partition befinden sich die ASs, die sich für die Route von $A$ entscheiden und in der anderen Partition die ASs, die sich für die Route von $T$ entscheiden.
+
+Nicht alle MOAS-Konflikte sind bösartig, da es auch legitime Anwendungsfälle wie zum Beispiel _Multihoming_ gibt.
+@quentin
 
 #figure(caption: "Beispiel für ein Netzwerk während eines MOAS-Konflikts mit AS 1 als True-Origin und Angreifer AS 5")[
   #image("images/moas.drawio.pdf")
@@ -81,6 +84,15 @@ Die beiden Partitionen, die dabei entstehen sind hier mit einer roten Linie getr
 AS 3 liegt dabei von beiden gleich weit entfernt.
 Wenn AS 5 nun ein Announcement mit einem Präfix bekanntgibt, welcher zeitgleich von AS 1 veröffentlicht wird, werden die ASs links der Linie dem Pfad zu AS 1 folgen und die ASs rechts der Linie dem Pfad zu AS 5 folgen.
 So kann der Angreifer AS 5 den Datenverkehr von AS 4, AS 6 und möglicherweise AS 3 abfangen und dafür sorgen, dass dieser nicht mehr das eigentliche Ziel erreicht.
+
+=== Auswirkungen
+
+Prefix-Hijacking ist immer wieder das Ergebnis von fehlerhaften Router-Konfigurationen.
+Es wird aber auch als Mittel von Angreifern genutzt um illegale Aktivitäten durchzuführen.
+Unter anderem werden mithilfe von übernommenen IP-Adressbereichen Spam-Emails verschickt und Phishing-Webseiten betrieben.
+Es werden gezielt IP-Adressbereiche angegriffen, die nicht auf IP-Blacklists gelistet sind.
+Somit bleibt der Angriff länger von automatischen Filtern unerkannt und es ist möglicherweise aufwändiger die Angreifer zu identifizieren.
+@quentin
 
 // #v(1fr)
 // #line(length: 100%)
@@ -95,7 +107,7 @@ So kann der Angreifer AS 5 den Datenverkehr von AS 4, AS 6 und möglicherweise A
 //   - BGP ist unverschlüsselt und basiert auf gegenseitigem Vertrauen
 //   - BGP-Hijacking und MOAS-Konflikte
 //   - Welche Auswirkungen hat BGP-Hijacking?
-//     - Übernahme von IP-Addressbereichen
+//     - Übernahme von IP-Adressbereichen
 //     - Illegale Aktivitäten: Spamming/Scamming (z.B. Phishing)
 
 #pagebreak()

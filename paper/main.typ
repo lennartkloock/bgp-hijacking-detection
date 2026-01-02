@@ -74,7 +74,7 @@
 
 #place(center)[
   #line(length: 50%)
-  Bis hier? bis zum 09.01.2026
+  Bis hier bis zum 09.01.2026
 ]
 
 #include "6_implementation.typ"
