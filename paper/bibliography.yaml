@@ -45,8 +45,8 @@ ru-RPKI-ready:
   page-range: 415-429
   parent:
     type: Proceedings
-    location: New York, NY, USA
     title: Proceedings of the 2025 ACM Internet Measurement Conference
+    location: New York, NY, USA
     serial-number:
       isbn: 9798400718601
 quentin:
@@ -56,3 +56,69 @@ quentin:
   url: https://pastel.hal.science/tel-01412800
   date: 2015-10
   organization: Télécom ParisTech
+phas:
+  type: Article
+  title: "PHAS: A Prefix Hijack Alert System"
+  author: ["Lad, Mohit", "Massey, Daniel", "Pei, Dan", "Wu, Yiguo", "Zhang, Beichuan", "Zhang, Lixia"]
+  date: 2006-07
+  publisher: USENIX Association
+  url: https://www.usenix.org/conference/15th-usenix-security-symposium/phas-prefix-hijack-alert-system
+  parent:
+    type: Proceedings
+    title: 15th USENIX Security Symposium (USENIX Security 06)
+    location: Vancouver, B.C. Canada
+bgpalerter:
+  type: Web
+  title: BGPalerter
+  date: 2019-07-18
+  url:
+    value: https://github.com/nttgin/BGPalerter
+    date: 2026-01-03
+artemis:
+  type: Web
+  title: "ARTEMIS: Real-Time Detection and Automatic Mitigation for BGP Prefix Hijacking"
+  date: 2018-11-26
+  url:
+    value: https://github.com/FORTH-ICS-INSPIRE/artemis
+    date: 2026-01-03
+hu-et-al:
+  type: Article
+  title: Accurate Real-time Identification of IP Prefix Hijacking
+  author: ["Hu, Xin", "Mao, Z. Morley"]
+  date: 2007
+  page-range: 3-17
+  serial-number:
+    doi: 10.1109/SP.2007.7
+  parent:
+    type: Proceedings
+    title: 2007 IEEE Symposium on Security and Privacy (SP '07)
+    location: Berkeley, CA, USA
+shi-et-al:
+  type: Article
+  title: Detecting prefix hijackings in the internet with Argus
+  author: ["Shi, Xingang", "Xiang, Yang", "Wang, Zhiliang", "Yin, Xia", "Wu, Jianping"]
+  date: 2012
+  page-range: 15-28
+  parent:
+    type: Proceedings
+    title: Proceedings of the 2012 Internet Measurement Conference
+    location: Boston, Massachusetts, USA
+wirtgen:
+  type: Article
+  title: A first step towards checking BGP routes in the dataplane
+  author: ["Wirtgen, Thomas", "Bonaventure, Olivier"]
+  date: 2022
+  page-range: 50-57
+  publisher: Association for Computing Machinery
+  parent:
+    type: Proceedings
+    title: Proceedings of the ACM SIGCOMM Workshop on Future of Internet Routing & Addressing
+    location: Amsterdam, Netherlands
+bgpwatch:
+  type: Web
+  title: BGPWatch — A comprehensive platform for detecting and diagnosing hijacking incidents
+  author: ["Wang, Jilong", "An, Changqing"]
+  date: 2024-02-07
+  url:
+    value: https://blog.apnic.net/2024/02/07/bgpwatch-a-comprehensive-platform-for-detecting-and-diagnosing-hijacking-incidents/
+    date: 2026-01-03
