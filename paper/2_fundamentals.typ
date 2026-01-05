@@ -94,9 +94,6 @@ Es werden gezielt IP-Adressbereiche angegriffen, die nicht auf IP-Blacklists gel
 Somit bleibt der Angriff länger von automatischen Filtern unerkannt und es ist möglicherweise aufwändiger die Angreifer zu identifizieren.
 @quentin
 
-// #v(1fr)
-// #line(length: 100%)
-
 // - Grundlagen/Fakten darstellen
 // - Vorstellung der Grundlagen
 //   - "Das Internet" besteht aus tausenden autonomen Systemen (ASs) und Routern, die Daten untereinander austauschen

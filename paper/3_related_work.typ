@@ -24,8 +24,19 @@ In @hu-et-al @shi-et-al werden Ansätze entwickelt, die einfache ICMP-Pings und 
 Fingerprinting ist das Identifizieren von Geräten anhand bestimmter Merkmale, die das Gerät eindeutig kennzeichnen.
 Die Zuverlässigkeit dieses Ansatzes ist jedoch fraglich, da Netzwerkscans und ICMP-Nachrichten von Firewalls blockiert werden können.
 
-@wirtgen
+// Kein Ansatz zur Überwachung:
+// Eine weitere Methode um Prefix-Hijacking-Angriffe zu verhindern, die 2022 in @wirtgen vorgeschlagen wird, ist die Überprüfung von Routen durch die Router selbst.
+// Hierzu kommunizieren die Router mit extra dafür eingerichteten Validierungsservern noch bevor eine empfangene Route in die Routing-Tabelle aufgenommen wird.
+// Diese Methode hat jedoch den Nachteil, dass die Router-Software angepasst werden muss und neue Infrastruktur benötigt wird.
+// Das ist in der Praxis nur schwer umzusetzen, wie an dem langsamen Fortschritt bei der Verbreitung von _RPKI_ zu sehen ist.
+
+Eine weitere Methode liefert das Open-Source-Projekt _BGPwatch_, welches BGP-Daten in Echtzeit analysiert.
+Dazu werden potenzielle Hijacking-Angriffe identifiziert und mithilfe von vordefinierten Regeln gefiltert.
+Anschließend werden alle Vorfälle mit KI-Modellen auf Basis von historischen BGP-Daten, IRR-Daten und RPKI-Daten bewertet um die Wahrscheinlichkeit eines echten Angriffs zu bestimmen.
+Das Projekt wurde von _APNIC_ und der chinesischen Regierung unterstützt.
 @bgpwatch
+
+Alle vorgestellten Lösungen bieten damit also keine vollständige Genauigkeit, sondern nur eine Abschätzung der Wahrscheinlichkeit eines echten Angriffs.
 
 // - Diskussion von Arbeiten
 // - Zahlen darstellen
@@ -54,7 +65,7 @@ Die Zuverlässigkeit dieses Ansatzes ist jedoch fraglich, da Netzwerkscans und I
 //     - Kann durch ICMP-Filter verhindert werden
 //     - Keine kryptografisch sichere Methode um Hosts zu identifizieren
 //
-//   - A first step towards checking BGP routes in the dataplane
+//   - Wirtgen: A first step towards checking BGP routes in the dataplane
 //     - 2022
 //     - Vorschlag Routersoftware anzupassen, sodass Routen mithilfe von TLS und speziellen Validation Servern überprüft werden,
 //       bevor sie in die Routing Tables eingefügt werden.
