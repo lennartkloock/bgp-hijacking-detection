@@ -77,6 +77,7 @@ bgpalerter:
 artemis:
   type: Web
   title: "ARTEMIS: Real-Time Detection and Automatic Mitigation for BGP Prefix Hijacking"
+  author: INSPIRE Group
   date: 2018-11-26
   url:
     value: https://github.com/FORTH-ICS-INSPIRE/artemis
@@ -122,3 +123,27 @@ bgpwatch:
   url:
     value: https://blog.apnic.net/2024/02/07/bgpwatch-a-comprehensive-platform-for-detecting-and-diagnosing-hijacking-incidents/
     date: 2026-01-03
+ripe-atlas-stats:
+  type: Web
+  title: RIPE Atlas - Statistics
+  url:
+    value: https://atlas.ripe.net/statistics/coverage
+    date: 2026-01-06
+ripe-ris-docs:
+  type: Web
+  title: Routing Information Service (RIS) – RIPE Network Coordination Centre
+  url:
+    value: https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/
+    date: 2026-01-06
+ripe-ris-peer-count:
+  type: Web
+  title: RIS Peer Count | RIPE NCC
+  url:
+    value: https://stat.ripe.net/docs/data-api/api-endpoints/ris-peer-count
+    date: 2026-01-06
+shodan:
+  type: Web
+  title: Shodan Search Engine
+  url:
+    value: https://www.shodan.io/
+    date: 2026-01-06

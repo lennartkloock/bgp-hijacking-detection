@@ -68,7 +68,7 @@
   )[
     Erstprüfer:
   ][
-    Matthias Wübbeling\
+    Dr. Matthias Wübbeling\
     #text(size: 10pt)[Universität Bonn]
   ]
 

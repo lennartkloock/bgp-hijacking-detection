@@ -46,23 +46,23 @@ Diese Nachricht wird von AS zu AS weitergeschickt bis sie schließlich einen Rou
 Die in der Nachricht enthaltenen Attribute sagen dem DFN (AS 680), dass der Präfix `186.1.198.0/24` über den Pfad $"AS 1299" -> "AS 32270" -> "AS 52260"$ zu erreichen ist indem eine Verbindung mit einem bestimmten Router von Arelion (AS 1299) aufgebaut wird.
 Diese Information merkt sich der Router in seiner Routing-Tabelle und kann sie somit abrufen sobald er in Zukunft ein Paket an eine Adresse aus dem Präfix empfängt.
 
-== Prefix-Hijacking
+== BGP-Hijacking
 
 Ein Problem des BGP ist jedoch, dass eine Verbindung standardmäßig vollständig unverschlüsselt und ohne Authentifizierung abläuft.
 BGP basiert auf gegenseitigem Vertrauen zwischen den beteiligten AS.
 Das bedeutet, dass praktisch beliebige Routen bekanntgegeben werden können ohne das unabhängig überprüft werden kann, ob es sich um valide Routen handelt.
 Das können sich Angreifer*innen zunutze machen um Datenverkehr ohne die Erlaubnis des eigentlichen Inhabers umzuleiten oder anderweitig zu manipulieren.
-Dieser Angriff heißt Prefix-Hijacking (auch: BGP-Hijacking).
+Diese Art von Angriff heißt BGP-Hijacking.
 @quentin
 
 Zwar existieren BGP-Erweiterungen wie zum Beispiel _Resource Public Key Infrastructure_ (kurz: RPKI) um dieses Problem anzugehen, jedoch ist die Verbreitung dieser Gegenmaßnahmen noch nicht sehr weit fortgeschritten.
 Eine Messung von April 2025 zeigt, dass weltweit 50% bis 60% der gerouteten IP-Präfixe von RPKI-Zertifikaten abgedeckt sind.
 @ru-RPKI-ready
-Also ist 40% bis 50% des globalen Adressbereichs nicht von RPKI-Zertifikaten abgedeckt und damit anfällig für Prefix-Hijacking-Angriffe.
+Also ist 40% bis 50% des globalen Adressbereichs nicht von RPKI-Zertifikaten abgedeckt und damit anfällig für BGP-Hijacking-Angriffe.
 
-=== MOAS-Konflikt
+=== Prefix-Hijacking und MOAS-Konflikte
 
-Ein Multiple-Origin-AS-Konflikt (kurz: MOAS-Konflikt) ist ein spezieller Fall eines Prefix-Hijacking-Angriffs, der für diese Arbeit von besonderem Interesse ist.
+Ein Prefix-Hijacking-Angriff ist ein spezieller Fall eines BGP-Hijacking-Angriffs, der für diese Arbeit von besonderem Interesse ist.
 In diesem Fall gibt ein Angreifer-AS $A$ einen Präfix $p$ als seinen eigenen bekannt, während das rechtmäßige Origin-AS $T$ den Präfix ebenfalls weiter verkündet.
 $O$ wird auch True-Origin-AS genannt.
 Dadurch entstehen zwei konkurrierende Routen für denselben Präfix $p$.
@@ -71,9 +71,10 @@ In der Regel wird die Route mit dem kürzeren AS-Pfad bevorzugt.
 Dadurch kann es passieren, dass von bestimmten ASs der Datenverkehr für den Präfix $p$ zum Angreifer-AS $A$ umgeleitet wird, obwohl $T$ der rechtmäßige Inhaber des Präfixes ist.
 Das teilt das Netzwerk effektiv in zwei Partitionen, da die Router meistens den kürzesten Weg zum Ziel bevorzugen.
 In der einen Partition befinden sich die ASs, die sich für die Route von $A$ entscheiden und in der anderen Partition die ASs, die sich für die Route von $T$ entscheiden.
-
-Nicht alle MOAS-Konflikte sind bösartig, da es auch legitime Anwendungsfälle wie zum Beispiel _Multihoming_ gibt.
 @quentin
+
+Diese Situation wird auch Multiple-Origin-AS-Konflikt (kurz: MOAS-Konflikt) genannt und ist nicht zwingend bösartig, da es auch legitime Anwendungsfälle wie zum Beispiel _Multihoming_ gibt.
+Ein Prefix-Hijacking-Angriff ist ein bösartiger MOAS-Konflikt.
 
 #figure(caption: "Beispiel für ein Netzwerk während eines MOAS-Konflikts mit AS 1 als True-Origin und Angreifer AS 5")[
   #image("images/moas.drawio.pdf")
@@ -87,8 +88,8 @@ So kann der Angreifer AS 5 den Datenverkehr von AS 4, AS 6 und möglicherweise A
 
 === Auswirkungen
 
-Prefix-Hijacking ist immer wieder das Ergebnis von fehlerhaften Router-Konfigurationen.
-Es wird aber auch als Mittel von Angreifern genutzt um illegale Aktivitäten durchzuführen.
+MOAS-Konflikte sind immer wieder das Ergebnis von fehlerhaften Router-Konfigurationen.
+Es wird jedoch auch als Mittel von Angreifern genutzt um illegale Aktivitäten durchzuführen.
 Unter anderem werden mithilfe von übernommenen IP-Adressbereichen Spam-Emails verschickt und Phishing-Webseiten betrieben.
 Es werden gezielt IP-Adressbereiche angegriffen, die nicht auf IP-Blacklists gelistet sind.
 Somit bleibt der Angriff länger von automatischen Filtern unerkannt und es ist möglicherweise aufwändiger die Angreifer zu identifizieren.

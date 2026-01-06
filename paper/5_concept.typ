@@ -1,4 +1,52 @@
-= Design/Konzept
+= Konzept <concept>
+
+In diesem Kapitel wird ein Konzept zur Erkennung von Prefix-Hijacking-Angriffen in Echtzeit mithilfe von TLS-Zertifikaten vorgestellt.
+
+== Vorgehensweise
+
+Zuerst werden MOAS-Konflikte identifiziert, unabhängig davon ob sie gutartig oder bösartig sind, damit anschließend für jeden dieser potenziellen Prefix-Hijacking-Angriffe Daten zur weiteren Einordnung gesammelt werden können.
+Dafür werden echte BGP-Daten verarbeitet, die kontinuierlich in Echtzeit von _RIPE RIS_ empfangen werden.
+Mithilfe dieser Daten wird eine Tabelle gepflegt, die für jeden Präfix alle dazugehörigen Origin-ASs speichert, die diesen Präfix aktuell verkünden.
+Wenn eine neue BGP-UPDATE-Nachricht empfangen wird, wird die Tabelle entsprechend aktualisiert.
+Sobald ein Präfix von mindestens zwei verschiedenen Origin-AS verkündet wird oder ein Präfix sich in einem anderen Präfix befindet, welcher ein abweichendes Origin-AS hat, wird dieser Präfix als MOAS-Konflikt in einer separaten Tabelle gespeichert.
+
+Im nächsten Schritt muss für alle potenziellen Prefix-Hijacking-Angriffe, die so identifiziert wurden ein TLS-Dienst im betroffenen Präfix gefunden werden.
+Das kann durch scannen jeder IP-Adresse des Präfixes umgesetzt werden.
+Die Suche wird jedoch durch schon bestehende Netzwerkdatenbanken wie _Shodan_ vereinfacht, die solche Scans regelmäßig durchführen.
+Über _Shodan_ lässt sich ein TLS-Dienst in einem bestimmten IP-Präfix durch eine einfache Suchanfrage finden.
+Diese kann auch durch die _Shodan_-API automatisiert werden.
+
+Wenn ein TLS-Dienst gefunden wurde, wird versucht zwei _RIPE Atlas_ Probes zu finden, die sich in den beiden unterschiedlichen Partitionen des MOAS-Konflikts befinden.
+Da die AS-Pfade der beiden konkurrierenden BGP-Nachrichten bekannt sind, kann nach Probes in den dort gelisteten ASNs gesucht werden.
+Dazu wird von hinten, also vom jeweiligen Origin-AS begonnen um sicherzustellen, dass sich die ausgewählten Probes möglichst nah an dem jeweiligen Origin-AS befinden.
+
+Wenn zwei solche Probes gefunden wurden, wird von beiden Probes aus eine Verbindung zu dem TLS-Dienst aufgebaut und das TLS-Zertifikat abgefragt.
+Anschließend können die beiden Zertifikate verglichen werden um festzustellen, ob sie identisch sind oder falls nicht, welches der beiden Zertifikate nicht auf den betroffenen Präfix ausgestellt wurde.
+Falls die Zertifikate unterschiedlich sind oder der Dienst aus einer der Partitionen gar nicht erreichbar ist, ist das ein starkes Zeichen dafür, dass es sich tatsächlich um einen Prefix-Hijacking-Angriff handelt.
+Falls die Zertifikate jedoch identisch sind, handelt es sich höchstwahrscheinlich um einen legitimen Anwendungsfall eines MOAS-Konflikts, wie zum Beispiel bei _Multihoming_.
+
+In diesem Prozess durchläuft ein Präfix $p$ mehrere Zustände:
+
+- _Unrecognized_: Es wurde noch keine Nachricht empfangen, die $p$ betrifft. $p$ ist nicht in der lokalen Tabelle enthalten.
+- _Single Origin_: $p$ wird mit genau einem Origin-AS assoziiert.
+- _Potential Hijack_: Es wurde ein MOAS-Konflikt für $p$ identifiziert.
+- _Likely Hijack_: Die vorgestellte TLS-Methode hat ergeben, dass $p$ von einem Prefix-Hijacking-Angriff betroffen ist.
+- _Safe MOAS_: Die vorgestellte TLS-Methode hat ergeben, dass $p$ ein legitimer MOAS-Konflikt ist.
+
+== Einschränkungen
+
+Das vorgestellte Konzept hat einige Einschränkungen, die im Folgenden erläutert werden.
+
+Der hier vorgestellte Ansatz erkennt nicht alle Arten von BGP-Hijackings, wie zum Beispiel Path-Spoofing-Angriffe.
+Es werden nur Prefix-Hijacking-Angriffe erkannt.
+
+Voraussetzung für den Erfolg dieser Methode ist außerdem, dass ein TLS-Dienst im betroffenen Präfix betrieben wird.
+Falls kein solcher Dienst existiert, können keine TLS-Zertifikate abgefragt werden.
+
+Es ist außerdem notwendig, dass sich in beiden Partitionen des MOAS-Konflikts mindestens eine _RIPE Atlas_ Probe befindet.
+
+// - Erkennt keine BGP-Hijackings, die nicht Prefix-Hijackings sind
+// - Erkennt keine MOAS-Präfixe, die keinen TLS-Dienst haben
 
 // - Eigene Gedanken
 // - Terminus festlegen
@@ -7,6 +55,9 @@
 // - Bewertung der Lösungsansätze
 
 // 1. MOAS Präfixe live identifizieren mithilfe RIPE RIS Live (https://ris-live.ripe.net/)
+//   - Globale Routing-Tabelle aufbauen
+//   - Letzten Monat an Announcement Archiven herunterladen und Datenbank füllen um einen Startpunkt für die globale Routing-Tabelle zu haben
+//   - Live Announcements abgleichen und hinzufügen
 // 2. TLS Hosts (z.B. HTTPS, SMTP, IMAP, DNS, LDAP, Datenbanken, SSH Host Keys?) im Prefix finden
 //   - Einfach alle Adressen auf bestimmten Ports scannen?
 //   - Legal?
@@ -16,11 +67,5 @@
 //   - Wie können wir uns sicher sein, dass wir uns tatsächlich in einer bestimmten Partition befinden?
 // 4. Von beiden Verbindung aufbauen und TLS Zertifikat abfragen
 // 5. Ergebnisse vergleichen
-
-// - REST API anbieten um Ergebnisse abzufragen
-// - Web-Frontend um Ergebnisse darzustellen
-
-// - Limitations
-//   - Abhängigkeit von RIPE RIS Live und RIPE Atlas
 
 #pagebreak()
