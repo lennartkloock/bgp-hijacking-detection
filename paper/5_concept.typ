@@ -33,6 +33,8 @@ In diesem Prozess durchläuft ein Präfix $p$ mehrere Zustände:
 - _Likely Hijack_: Die vorgestellte TLS-Methode hat ergeben, dass $p$ von einem Prefix-Hijacking-Angriff betroffen ist.
 - _Safe MOAS_: Die vorgestellte TLS-Methode hat ergeben, dass $p$ ein legitimer MOAS-Konflikt ist.
 
+In den folgenden Kapiteln gilt es herauszufinden, ob und wie zuverlässig diese Methode in der Praxis funktioniert um falsch positive Ergebnisse zu minimieren.
+
 == Einschränkungen
 
 Das vorgestellte Konzept hat einige Einschränkungen, die im Folgenden erläutert werden.
@@ -40,10 +42,13 @@ Das vorgestellte Konzept hat einige Einschränkungen, die im Folgenden erläuter
 Der hier vorgestellte Ansatz erkennt nicht alle Arten von BGP-Hijackings, wie zum Beispiel Path-Spoofing-Angriffe.
 Es werden nur Prefix-Hijacking-Angriffe erkannt.
 
-Voraussetzung für den Erfolg dieser Methode ist außerdem, dass ein TLS-Dienst im betroffenen Präfix betrieben wird.
+Voraussetzung für den Erfolg dieser Methode ist außerdem, dass ein TLS-Dienst im betroffenen Präfix betrieben und gefunden wird.
 Falls kein solcher Dienst existiert, können keine TLS-Zertifikate abgefragt werden.
 
 Es ist außerdem notwendig, dass sich in beiden Partitionen des MOAS-Konflikts mindestens eine _RIPE Atlas_ Probe befindet.
+
+Davon abgesehen ist es möglich, dass ein Angreifer Zugriff auf das TLS-Zertifikat des Opfers hat und dieses auf dem bösartigen Server einsetzt.
+In diesem Fall erkennt die vorgestellte Methode den Prefix-Hijacking-Angriff nicht und es kommt zu einem falsch negativen Ergebnis.
 
 // - Erkennt keine BGP-Hijackings, die nicht Prefix-Hijackings sind
 // - Erkennt keine MOAS-Präfixe, die keinen TLS-Dienst haben

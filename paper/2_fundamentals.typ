@@ -51,7 +51,7 @@ Diese Information merkt sich der Router in seiner Routing-Tabelle und kann sie s
 Ein Problem des BGP ist jedoch, dass eine Verbindung standardmäßig vollständig unverschlüsselt und ohne Authentifizierung abläuft.
 BGP basiert auf gegenseitigem Vertrauen zwischen den beteiligten AS.
 Das bedeutet, dass praktisch beliebige Routen bekanntgegeben werden können ohne das unabhängig überprüft werden kann, ob es sich um valide Routen handelt.
-Das können sich Angreifer*innen zunutze machen um Datenverkehr ohne die Erlaubnis des eigentlichen Inhabers umzuleiten oder anderweitig zu manipulieren.
+Das können sich Angreifer zunutze machen um Datenverkehr ohne die Erlaubnis des eigentlichen Inhabers umzuleiten oder anderweitig zu manipulieren.
 Diese Art von Angriff heißt BGP-Hijacking.
 @quentin
 

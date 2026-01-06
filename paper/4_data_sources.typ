@@ -21,6 +21,9 @@ Dazu werden regelmäßig Scans durchgeführt, die verschiedene Dienste und deren
 _Shodan_ bietet eine Suchmaschine an mit der gezielt nach bestimmten Geräten und Diensten gesucht werden kann.
 @shodan
 
+Die Aktualität und Vollständigkeit der Daten in _Shodan_ ist nicht garantiert, da die Scans nicht in Echtzeit durchgeführt werden.
+Es kann also vorkommen, dass unerreichbare Dienste in _Shodan_ als erreichbar gelistet sind.
+
 == RIPE Atlas
 
 _RIPE Atlas_ ist ein weiterer Dienst von _RIPE NCC_ und besteht aus einem globalen Netzwerk von sogenannten _Probes_.

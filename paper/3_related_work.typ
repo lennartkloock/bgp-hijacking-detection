@@ -37,6 +37,7 @@ Das Projekt wurde von _APNIC_ und der chinesischen Regierung unterstützt.
 @bgpwatch
 
 Alle vorgestellten Lösungen bieten damit also keine vollständige Genauigkeit, sondern nur eine Abschätzung der Wahrscheinlichkeit eines echten Angriffs.
+Das in dieser Arbeit vorgestellte Konzept hingegen nutzt kryptografisch abgesicherte TLS-Zertifikate zur Identifizierung.
 
 // - Diskussion von Arbeiten
 // - Zahlen darstellen
