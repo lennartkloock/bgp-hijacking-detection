@@ -6,21 +6,21 @@ In diesem Kapitel wird ein Konzept zur Erkennung von Prefix-Hijacking-Angriffen 
 
 Zuerst werden MOAS-Konflikte identifiziert, unabhängig davon ob sie gutartig oder bösartig sind, damit anschließend für jeden dieser potenziellen Prefix-Hijacking-Angriffe Daten zur weiteren Einordnung gesammelt werden können.
 Dafür werden echte BGP-Daten verarbeitet, die kontinuierlich in Echtzeit von _RIPE RIS_ empfangen werden.
-Mithilfe dieser Daten wird eine Tabelle gepflegt, die für jeden Präfix alle dazugehörigen Origin-ASs speichert, die diesen Präfix aktuell verkünden.
+Mithilfe dieser Daten wird eine Tabelle gepflegt, die für jeden Präfix alle dazugehörigen Origin-AS speichert, die diesen Präfix aktuell verkünden.
 Wenn eine neue BGP-UPDATE-Nachricht empfangen wird, wird die Tabelle entsprechend aktualisiert.
 Sobald ein Präfix von mindestens zwei verschiedenen Origin-AS verkündet wird oder ein Präfix sich in einem anderen Präfix befindet, welcher ein abweichendes Origin-AS hat, wird dieser Präfix als MOAS-Konflikt in einer separaten Tabelle gespeichert.
 
 Im nächsten Schritt muss für alle potenziellen Prefix-Hijacking-Angriffe, die so identifiziert wurden ein TLS-Dienst im betroffenen Präfix gefunden werden.
-Das kann durch scannen jeder IP-Adresse des Präfixes umgesetzt werden.
+Das kann durch Scannen jeder IP-Adresse des Präfixes umgesetzt werden.
 Die Suche wird jedoch durch schon bestehende Netzwerkdatenbanken wie _Shodan_ vereinfacht, die solche Scans regelmäßig durchführen.
 Über _Shodan_ lässt sich ein TLS-Dienst in einem bestimmten IP-Präfix durch eine einfache Suchanfrage finden.
 Diese kann auch durch die _Shodan_-API automatisiert werden.
 
-Wenn ein TLS-Dienst gefunden wurde, wird versucht zwei _RIPE Atlas_ Probes zu finden, die sich in den beiden unterschiedlichen Partitionen des MOAS-Konflikts befinden.
-Da die AS-Pfade der beiden konkurrierenden BGP-Nachrichten bekannt sind, kann nach Probes in den dort gelisteten ASNs gesucht werden.
-Dazu wird von hinten, also vom jeweiligen Origin-AS begonnen um sicherzustellen, dass sich die ausgewählten Probes möglichst nah an dem jeweiligen Origin-AS befinden.
+Wenn ein TLS-Dienst gefunden wurde, wird versucht zwei _RIPE Atlas_ _Probes_ zu finden, die sich in den beiden unterschiedlichen Partitionen des MOAS-Konflikts befinden.
+Da die AS-Pfade der beiden konkurrierenden BGP-Nachrichten bekannt sind, kann nach _Probes_ in den dort gelisteten ASNs gesucht werden.
+Dazu wird von hinten, also vom jeweiligen Origin-AS begonnen um sicherzustellen, dass sich die ausgewählten _Probes_ möglichst nah an dem jeweiligen Origin-AS befinden.
 
-Wenn zwei solche Probes gefunden wurden, wird von beiden Probes aus eine Verbindung zu dem TLS-Dienst aufgebaut und das TLS-Zertifikat abgefragt.
+Wenn zwei solche _Probes_ gefunden wurden, wird von beiden _Probes_ aus eine Verbindung zu dem TLS-Dienst aufgebaut und das TLS-Zertifikat abgefragt.
 Anschließend können die beiden Zertifikate verglichen werden um festzustellen, ob sie identisch sind oder falls nicht, welches der beiden Zertifikate nicht auf den betroffenen Präfix ausgestellt wurde.
 Falls die Zertifikate unterschiedlich sind oder der Dienst aus einer der Partitionen gar nicht erreichbar ist, ist das ein starkes Zeichen dafür, dass es sich tatsächlich um einen Prefix-Hijacking-Angriff handelt.
 Falls die Zertifikate jedoch identisch sind, handelt es sich höchstwahrscheinlich um einen legitimen Anwendungsfall eines MOAS-Konflikts, wie zum Beispiel bei _Multihoming_.

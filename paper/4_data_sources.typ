@@ -5,7 +5,7 @@ In diesem Kapitel werden die Datenquellen beschrieben, die zur Umsetzung des Kon
 == RIPE RIS
 
 _RIPE Routing Information Service_ (kurz: _RIPE RIS_) ist ein Dienst der von _RIPE NCC_ bereitgestellt wird.
-_RIPE NCC_ ist die regionale Internet-Registrierungstelle (kurz: RIR) für Europa.
+_RIPE NCC_ ist die regionale Internet-Registrierungsstelle (kurz: RIR) für Europa.
 _RIPE RIS_ sammelt weltweit BGP-Daten von sogenannten _Vantage Points_ und stellt diese öffentlich zur Verfügung.
 _Vantage Points_ sind Router, die BGP-Daten freiwillig mit _RIPE RIS_ teilen um die Forschung und das Verständnis des Internets zu fördern.
 Die Daten werden sowohl als historische Archive als auch in Echtzeit über einen Live-Feed bereitgestellt.
@@ -31,7 +31,7 @@ _RIPE Atlas_ ist ein weiterer Dienst von _RIPE NCC_ und besteht aus einem global
 _RIPE Atlas_ erlaubt es Nutzenden beliebige _Probes_ für Messungen zu verwenden.
 
 _RIPE Atlas_ hat 14469 aktive _Probes_ in 183 verschiedenen Ländern (Stand: Januar 2026). @ripe-atlas-stats
-Es gibt für ca. 6% aller ASs mindestens eine _Probe_. @ripe-atlas-stats
+Es gibt für ca. 6~% aller AS mindestens eine _Probe_. @ripe-atlas-stats
 
 // - Grund truth
 //   - RIPE RIS Live

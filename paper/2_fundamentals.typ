@@ -56,9 +56,9 @@ Diese Art von Angriff heißt BGP-Hijacking.
 @quentin
 
 Zwar existieren BGP-Erweiterungen wie zum Beispiel _Resource Public Key Infrastructure_ (kurz: RPKI) um dieses Problem anzugehen, jedoch ist die Verbreitung dieser Gegenmaßnahmen noch nicht sehr weit fortgeschritten.
-Eine Messung von April 2025 zeigt, dass weltweit 50% bis 60% der gerouteten IP-Präfixe von RPKI-Zertifikaten abgedeckt sind.
+Eine Messung von April 2025 zeigt, dass weltweit 50~% bis 60~% der gerouteten IP-Präfixe von RPKI-Zertifikaten abgedeckt sind.
 @ru-RPKI-ready
-Also ist 40% bis 50% des globalen Adressbereichs nicht von RPKI-Zertifikaten abgedeckt und damit anfällig für BGP-Hijacking-Angriffe.
+Also ist 40~% bis 50~% des globalen Adressbereichs nicht von RPKI-Zertifikaten abgedeckt und damit anfällig für BGP-Hijacking-Angriffe.
 
 === Prefix-Hijacking und MOAS-Konflikte
 
@@ -68,9 +68,9 @@ $O$ wird auch True-Origin-AS genannt.
 Dadurch entstehen zwei konkurrierende Routen für denselben Präfix $p$.
 Router, die eine UPDATE-Nachricht von beiden AS erhalten, müssen sich dann entscheiden welche Route sie in ihre Routing-Tabelle aufnehmen.
 In der Regel wird die Route mit dem kürzeren AS-Pfad bevorzugt.
-Dadurch kann es passieren, dass von bestimmten ASs der Datenverkehr für den Präfix $p$ zum Angreifer-AS $A$ umgeleitet wird, obwohl $T$ der rechtmäßige Inhaber des Präfixes ist.
+Dadurch kann es passieren, dass von bestimmten AS der Datenverkehr für den Präfix $p$ zum Angreifer-AS $A$ umgeleitet wird, obwohl $T$ der rechtmäßige Inhaber des Präfixes ist.
 Das teilt das Netzwerk effektiv in zwei Partitionen, da die Router meistens den kürzesten Weg zum Ziel bevorzugen.
-In der einen Partition befinden sich die ASs, die sich für die Route von $A$ entscheiden und in der anderen Partition die ASs, die sich für die Route von $T$ entscheiden.
+In der einen Partition befinden sich die AS, die sich für die Route von $A$ entscheiden und in der anderen Partition die AS, die sich für die Route von $T$ entscheiden.
 @quentin
 
 Diese Situation wird auch Multiple-Origin-AS-Konflikt (kurz: MOAS-Konflikt) genannt und ist nicht zwingend bösartig, da es auch legitime Anwendungsfälle wie zum Beispiel _Multihoming_ gibt.
@@ -80,27 +80,27 @@ Ein Prefix-Hijacking-Angriff ist ein bösartiger MOAS-Konflikt.
   #image("images/moas.drawio.pdf")
 ] <moas_example>
 
-@moas_example stellt ein beispielhaftes Netzwerk bestehend aus 6 ASs während eines MOAS-Konflikts mit $T="AS 1"$ und $A="AS 5"$ dar.
-Die beiden Partitionen, die dabei entstehen sind hier mit einer roten Linie getrennt, die zeigt, welche ASs näher an $T$ bzw. $A$ liegen.
+@moas_example stellt ein beispielhaftes Netzwerk bestehend aus 6 AS während eines MOAS-Konflikts mit $T="AS 1"$ und $A="AS 5"$ dar.
+Die beiden Partitionen, die dabei entstehen sind hier mit einer roten Linie getrennt, die zeigt, welche AS näher an $T$ bzw. $A$ liegen.
 AS 3 liegt dabei von beiden gleich weit entfernt.
-Wenn AS 5 nun ein Announcement mit einem Präfix bekanntgibt, welcher zeitgleich von AS 1 veröffentlicht wird, werden die ASs links der Linie dem Pfad zu AS 1 folgen und die ASs rechts der Linie dem Pfad zu AS 5 folgen.
+Wenn AS 5 nun ein Announcement mit einem Präfix bekanntgibt, welcher zeitgleich von AS 1 veröffentlicht wird, werden die AS links der Linie dem Pfad zu AS 1 folgen und die AS rechts der Linie dem Pfad zu AS 5 folgen.
 So kann der Angreifer AS 5 den Datenverkehr von AS 4, AS 6 und möglicherweise AS 3 abfangen und dafür sorgen, dass dieser nicht mehr das eigentliche Ziel erreicht.
 
 === Auswirkungen
 
 MOAS-Konflikte sind immer wieder das Ergebnis von fehlerhaften Router-Konfigurationen.
 Es wird jedoch auch als Mittel von Angreifern genutzt um illegale Aktivitäten durchzuführen.
-Unter anderem werden mithilfe von übernommenen IP-Adressbereichen Spam-Emails verschickt und Phishing-Webseiten betrieben.
+Unter anderem werden mithilfe von übernommenen IP-Adressbereichen Spam-E-Mails verschickt und Phishing-Webseiten betrieben.
 Es werden gezielt IP-Adressbereiche angegriffen, die nicht auf IP-Blacklists gelistet sind.
 Somit bleibt der Angriff länger von automatischen Filtern unerkannt und es ist möglicherweise aufwändiger die Angreifer zu identifizieren.
 @quentin
 
 // - Grundlagen/Fakten darstellen
 // - Vorstellung der Grundlagen
-//   - "Das Internet" besteht aus tausenden autonomen Systemen (ASs) und Routern, die Daten untereinander austauschen
+//   - "Das Internet" besteht aus tausenden autonomen Systemen (AS) und Routern, die Daten untereinander austauschen
 //   - Um Daten erfolgreich austauschen zu können muss ein Router immer wissen wo ein Datenpaket als nächstes hingeschickt werden muss um sein Ziel zu erreichen
-//   - Verbindungen zwischen ASs (Topologie) ändern sich dauernd
-//   - BGP de-facto Standard um Änderungen der Netzwerktopologie zwischen ASs zu kommunizieren
+//   - Verbindungen zwischen AS (Topologie) ändern sich dauernd
+//   - BGP de-facto Standard um Änderungen der Netzwerktopologie zwischen AS zu kommunizieren
 //   - Grafik mit Beispiel BGP-Session
 //   - BGP ist unverschlüsselt und basiert auf gegenseitigem Vertrauen
 //   - BGP-Hijacking und MOAS-Konflikte
