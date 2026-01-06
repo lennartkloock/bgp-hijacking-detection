@@ -1,10 +1,9 @@
 #import "util.typ": accent_color, date, author
 
-#set document(author: author, title: "Echtzeiterkennung von\nPrefix-Hijacking-Angriffen\nmithilfe von TLS-Zertifikaten")
-#show title: name => {
-  set text(fill: accent_color, baseline: -3pt)
-  smallcaps(name)
-}
+#let doc_title = "Echtzeiterkennung von\nPrefix-Hijacking-Angriffen\nmithilfe von TLS-Zertifikaten"
+
+#set document(author: author, title: doc_title.replace("\n", " "))
+#show title: smallcaps(text(fill: accent_color, baseline: -3pt, doc_title))
 
 #place(right, image("images/uni_logo.svg", alt: "Univesität Bonn", width: 5.2cm))
 
