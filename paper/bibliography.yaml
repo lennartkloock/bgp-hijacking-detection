@@ -141,7 +141,7 @@ ripe-ris-peer-count:
   url:
     value: https://stat.ripe.net/docs/data-api/api-endpoints/ris-peer-count
     date: 2026-01-06
-shodan:
+shodan-website:
   type: Web
   title: Shodan Search Engine
   url:

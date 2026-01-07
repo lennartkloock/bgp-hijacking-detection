@@ -5,19 +5,19 @@ In diesem Kapitel werden Arbeiten betrachtet, die sich mit der Erkennung von Pre
 == Control-Plane Ansätze
 
 Ein früher Ansatz zur Erkennung von Prefix-Hijacking-Angriffen ist das _Prefix Hijacking Alert System_ (kurz: _PHAS_) aus dem Jahr 2006. @phas
-Das _PHAS_ arbeitet nur mit Daten aus der Control-Plane, also nur BGP-Daten die direkt von Routern gesammelt werden.
+Das _PHAS_ arbeitet nur mit Daten aus der _Control-Plane_, sprich nur BGP-Daten die direkt von Routern gesammelt werden.
 _PHAS_' Ziel ist es, Netzwerkadministratoren zu benachrichtigen, wenn ein Prefix-Hijacking-Angriff auf eines ihrer eigenen AS erkannt wird.
 Das Ziel ist also nicht ein globales Erkennungssystem, sondern ein System, das nur das eigene Netzwerk überwacht.
 
 Ähnlich wie _PHAS_ funktionieren auch die beiden Systeme _ARTEMIS_ @artemis und _BGPalerter_ @bgpalerter.
-Die beiden Systeme sind ebenfalls darauf ausgelegt eigene Präfixe zu überwachen und Netzwerkadministratoren zu benachrichtigen, wenn ein Hijacking-Angriff erkannt wird.
-Auch diese Systeme benötigen Vorwissen über das eigene Netzwerk um sie korrekt zu konfigurieren und sind nicht auf eine globale Erkennung alle Vorfälle ausgelegt.
+Diese beiden Systeme sind ebenfalls darauf ausgelegt eigene Präfixe zu überwachen und Netzwerkadministratoren zu benachrichtigen, wenn ein Hijacking-Angriff erkannt wird.
+Auch diese Systeme benötigen Vorwissen über das eigene Netzwerk um sie korrekt zu konfigurieren und sind nicht auf eine globale Erkennung aller Vorfälle ausgelegt.
 
 == Data-Plane Ansätze
 
-Im Folgenden werden Ansätze vorgestellt, die zusätzlich zu Daten aus der Control-Plane auch Daten aus der Data-Plane nutzen um Angriffe zu analysieren.
+Im Folgenden werden Ansätze vorgestellt, die zusätzlich zu Daten aus der _Control-Plane_ auch Daten aus der _Data-Plane_ nutzen um Angriffe zu analysieren.
 So können mehr Informationen gesammelt werden um potenzielle Angriffe besser einordnen zu können und falsch positive Treffer auszuschließen.
-Ein Nachteil bei der Nutzung der Data-Plane ist jedoch, dass die Daten in Echtzeit gesammelt werden müssen, da sie nicht aus den BGP-Daten von Routern hervorgehen, sondern durch aktive und gezielte Messungen gewonnen werden müssen.
+Ein Nachteil bei der Nutzung der _Data-Plane_ ist jedoch, dass die Daten in Echtzeit gesammelt werden müssen, da sie nicht aus den BGP-Daten von Routern hervorgehen, sondern durch aktive und gezielte Messungen gewonnen werden.
 Das bedeutet, dass historische Ereignisse nicht im Nachhinein analysiert werden können.
 
 In @hu-et-al @shi-et-al werden Ansätze entwickelt, die einfache ICMP-Pings und Netzwerkscans mit z.B. _nmap_ nutzen um Netzwerkgeräte zu fingerprinten.
