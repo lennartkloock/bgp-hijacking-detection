@@ -83,4 +83,3 @@
 #include "8_conclusion.typ"
 #include "bibliography.typ"
 #include "figures.typ"
-#include "abbreviations.typ"
