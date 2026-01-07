@@ -10,6 +10,7 @@
 
 #set page(background: rotate(24deg, text(22pt, fill: rgb("#dddddd"))[*ENTWURF*])) if pre_release
 
+#show heading.where(level: 1): set heading(supplement: "Kapitel")
 #show heading: name => {
   set text(fill: accent_color)
   smallcaps(name)
@@ -74,7 +75,7 @@
 
 #place(center)[
   #line(length: 50%)
-  Bis hier? bis zum 09.01.2026
+  Bis hier bis zum 09.01.2026
 ]
 
 #include "6_implementation.typ"
@@ -82,4 +83,3 @@
 #include "8_conclusion.typ"
 #include "bibliography.typ"
 #include "figures.typ"
-// #include "abbreviations.typ"
