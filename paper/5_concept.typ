@@ -25,7 +25,7 @@ Anschließend können die beiden Zertifikate verglichen werden um festzustellen,
 Falls die Zertifikate unterschiedlich sind oder der Dienst aus einer der Partitionen gar nicht erreichbar ist, ist das ein starkes Zeichen dafür, dass es sich tatsächlich um einen Prefix-Hijacking-Angriff handelt.
 Falls die Zertifikate jedoch identisch sind, handelt es sich höchstwahrscheinlich um einen legitimen Anwendungsfall eines MOAS-Konflikts, wie zum Beispiel bei _Multihoming_.
 
-In diesem Prozess durchläuft ein Präfix $p$ mehrere Zustände:
+In diesem Prozess kann sich ein Präfix $p$ in einem der folgenden Zuständen befinden:
 
 - _Unrecognized_: Es wurde noch keine Nachricht empfangen, die $p$ betrifft. $p$ ist nicht in der lokalen Tabelle enthalten.
 - _Single Origin_: $p$ wird mit genau einem Origin-AS assoziiert.
@@ -33,7 +33,7 @@ In diesem Prozess durchläuft ein Präfix $p$ mehrere Zustände:
 - _Likely Hijack_: Die vorgestellte TLS-Methode hat ergeben, dass $p$ von einem Prefix-Hijacking-Angriff betroffen ist.
 - _Safe MOAS_: Die vorgestellte TLS-Methode hat ergeben, dass $p$ ein legitimer MOAS-Konflikt ist.
 
-In den folgenden Kapiteln gilt es herauszufinden, ob und wie zuverlässig diese Methode in der Praxis funktioniert um falsch positive Ergebnisse zu minimieren.
+In den folgenden Kapiteln gilt es herauszufinden, ob und wie zuverlässig diese Methode in der Praxis funktioniert, um falsch positive Ergebnisse zu minimieren.
 
 == Einschränkungen
 

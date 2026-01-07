@@ -18,10 +18,10 @@ Diese und viele weitere Fälle zeigen, dass BGP-Hijacking weiterhin ein großes 
 
 Eine spezielle Form von BGP-Hijacking ist Prefix-Hijacking.
 Ziel dieser Arbeit ist es, eine verlässliche Methode zu entwickeln, um potenzielle Prefix-Hijacking-Angriffe mithilfe öffentlicher Datenquellen zu erkennen und in Echtzeit zu bewerten.
-Dabei soll nicht nur die _Control-Plane_, sondern auch die _Data-Plane_ eingesetzt werden um Erkenntnisse über einen Angriff zu sammeln.
+Dabei soll nicht nur die _Control-Plane_, sondern auch die _Data-Plane_ eingesetzt werden, um Erkenntnisse über einen Angriff zu sammeln.
 Es kann von Vorteil sein die _Data-Plane_ mit in die Analyse einzubeziehen, da dort möglicherweise Dienste betrieben werden, die Auskunft über den Betreiber dieser geben können.
-Dabei sollen gezielt Dienste, die TLS einsetzen, wie zum Beispiel Webserver oder Mailserver, abgefragt werden, da TLS kryptografische Zertifikate nutzt um die Authentizität eines Servers bestätigen zu können.
-Diese Arbeit soll die Frage klären, ob das Abrufen von TLS-Zertifikaten als zuverlässige Methode genutzt werden kann um Prefix-Hijackings zu erkennen.
+Dabei sollen gezielt Dienste, die TLS einsetzen, wie zum Beispiel Webserver oder Mailserver, abgefragt werden, da TLS kryptografische Zertifikate nutzt, um die Authentizität eines Servers bestätigen zu können.
+Diese Arbeit soll die Frage klären, ob das Abrufen von TLS-Zertifikaten als zuverlässige Methode genutzt werden kann, um Prefix-Hijackings zu erkennen.
 
 Um dieses Ziel zu erreichen soll eine Open-Source-Software entwickelt werden, die die oben beschriebenen Methoden implementiert und eine öffentlich zugängliche Plattform bereitstellt um diese Daten abzurufen und einzusehen.
 

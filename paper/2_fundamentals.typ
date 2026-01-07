@@ -8,15 +8,17 @@ Das Internet ist ein dezentrales Netzwerk von tausenden autonomen Systemen (kurz
 
 Um einzelne Netzwerkgeräte zu adressieren werden IP-Adressen genutzt, welche 32-bit (IPv4) bzw. 128-bit (IPv6) Zahlen sind.
 Um ganze Netzwerke, sprich mehrere IP-Adressen adressieren zu können, kommen IP-Präfixe zum Einsatz.
-Ein IP-Präfix erlaubt es mehrere aufeinanderfolgende IP-Adressen als Einheit zu adressieren und erleichtert somit den gebündelten Austausch von Routing-Informationen.
+Ein IP-Präfix erlaubt es, mehrere aufeinanderfolgende IP-Adressen als Einheit zu adressieren und erleichtert somit den gebündelten Austausch von Routing-Informationen.
 Dadurch wird das Handeln und Verwalten von IP-Adressen und deren Nutzungsrechten vereinfacht.
 In dieser Arbeit werden IP-Präfixe in der _Classless Inter-Domain Routing_ (kurz: CIDR) Notation dargestellt.
+Die CIDR-Notation besteht aus einer IP-Adresse, gefolgt von einem Schrägstrich und einer Zahl, die die Länge des Präfixes in Bits angibt.
+Zum Beispiel bezeichnet der IPv4-Präfix `192.168.0.0/16` alle Adressen von `192.168.0.0` bis `192.168.255.255`.
 
 == BGP
 
-Damit ein Datenpaket zuverlässig von A nach B kommt, muss es meistens mehrere Router passieren um schließlich sein Ziel zu erreichen.
-Dabei muss an jedem Router an dem das Paket vorbeikommt, klar sein wohin es als nächstes geschickt werden soll um möglichst effizient sein Ziel zu erreichen.
-Dafür stehen die Router der verschiedenen AS im ständigen Austausch miteinander, auch um auf Änderungen in der Netzwerktopologie reagieren zu können und die bestehenden Verbindungen zu allen AS weiter auf effizientestem Weg sicherzustellen.
+Damit ein Datenpaket zuverlässig von A nach B kommt, muss es meistens mehrere Router passieren, um schließlich sein Ziel zu erreichen.
+Dabei muss bei jedem Router an dem das Paket vorbeikommt, klar sein wohin es als nächstes geschickt werden soll, um möglichst effizient sein Ziel zu erreichen.
+Dafür stehen die Router der verschiedenen AS im ständigen Austausch miteinander, auch, um auf Änderungen in der Netzwerktopologie reagieren zu können und die bestehenden Verbindungen zu allen AS weiter auf effizientestem Weg sicherzustellen.
 Das etablierte Protokoll, welches diesen Austausch ermöglicht, nennt sich _Border Gateway Protocol_ (kurz: BGP).
 Mithilfe der Informationen, die durch BGP-Nachrichten von anderen AS empfangen werden, pflegt jeder Router eine eigene Routing-Tabelle, die den aktuellen Zustand des Netzwerks aus Sicht dieses Routers abbildet.
 
@@ -38,9 +40,9 @@ Wenn mit einer UPDATE-Nachricht eine neue Route verkündet wird, enthält sie ei
 
 #figure(caption: "Beispiel für drei BGP-UPDATE-Nachrichten")[
   #image(width: 30em, "images/bgp_updates.drawio.pdf")
-] <bgp_update_example>
+] <bgp-update-example>
 
-@bgp_update_example zeigt beispielhaft drei echte BGP-UPDATE-Nachrichten, die den IPv4-Präfix `186.1.198.0/24` betreffen und am 27. Dezember 2025 mithilfe von RIPE RIS aufgezeichnet wurden.
+@bgp-update-example zeigt beispielhaft drei echte BGP-UPDATE-Nachrichten, die den IPv4-Präfix `186.1.198.0/24` betreffen und am 27. Dezember 2025 mithilfe von _RIPE RIS_ aufgezeichnet wurden.
 Die erste Nachricht wird von einem Router von Télécommunications de Haití (AS 52260) zu einem Router der LD Telecommunications Inc. (AS 32270) geschickt und verkündet, dass der Präfix `186.1.198.0/24` über den Router mit der IP-Adresse `190.102.95.102` (NEXT_HOP) zu erreichen ist.
 Diese Nachricht wird von AS zu AS weitergeschickt bis sie schließlich einen Router des DFN (AS 680) erreicht.
 Die in der Nachricht enthaltenen Attribute sagen dem DFN (AS 680), dass der Präfix `186.1.198.0/24` über den Pfad $"AS 1299" -> "AS 32270" -> "AS 52260"$ zu erreichen ist, indem eine Verbindung mit einem bestimmten Router von Arelion (AS 1299) aufgebaut wird.
@@ -51,7 +53,7 @@ Diese Information merkt sich der Router in seiner Routing-Tabelle und kann sie s
 Ein Problem des BGP ist jedoch, dass eine Verbindung standardmäßig vollständig unverschlüsselt und ohne Authentifizierung abläuft.
 BGP basiert auf gegenseitigem Vertrauen zwischen den beteiligten AS.
 Das bedeutet, dass beliebige Routen bekanntgegeben werden können ohne dass unabhängig überprüft werden kann, ob diese valide sind.
-Das können sich Angreifer zunutze machen um Datenverkehr ohne die Erlaubnis des eigentlichen Inhabers umzuleiten oder anderweitig zu manipulieren.
+Das können sich Angreifer zunutze machen, um Datenverkehr ohne die Erlaubnis des eigentlichen Inhabers umzuleiten oder anderweitig zu manipulieren.
 Diese Art von Angriff heißt BGP-Hijacking.
 @quentin
 
@@ -74,7 +76,7 @@ In der einen Partition befinden sich die AS, welche sich für die Route von $A$ 
 @quentin
 
 Diese Situation wird auch Multiple-Origin-AS-Konflikt (kurz: MOAS-Konflikt) genannt und ist nicht zwingend bösartig, da es auch legitime Anwendungsfälle wie zum Beispiel
-_Multihoming_ #footnote[Bei _Multihoming_ wird ein Präfix gezielt von mehreren AS gleichzeitig verkündet um Datenverkehr auf mehrere Verbindungen zu verteilen und so die Ausfallsicherheit zu erhöhen. Hierbei handelt es sich um einen legitimen MOAS-Konflikt.] gibt.
+_Multihoming_ #footnote[Bei _Multihoming_ wird ein Präfix gezielt von mehreren AS gleichzeitig verkündet, um Datenverkehr auf mehrere Verbindungen zu verteilen und so die Ausfallsicherheit zu erhöhen. Hierbei handelt es sich um einen legitimen MOAS-Konflikt.] gibt.
 Ein Prefix-Hijacking-Angriff ist ein bösartiger MOAS-Konflikt.
 
 #figure(caption: "Beispiel für ein Netzwerk während eines MOAS-Konflikts mit AS 1 als True-Origin und Angreifer AS 5")[
@@ -93,7 +95,7 @@ MOAS-Konflikte sind immer wieder das Ergebnis von fehlerhaften Router-Konfigurat
 Es wird jedoch auch als Mittel von Angreifern genutzt um illegale Aktivitäten durchzuführen.
 Unter anderem werden mithilfe von übernommenen IP-Adressbereichen Spam-E-Mails verschickt und Phishing-Webseiten betrieben.
 Es werden gezielt IP-Adressbereiche angegriffen, die nicht auf IP-Blacklists gelistet sind.
-Somit bleibt der Angriff länger von automatischen Filtern unerkannt und es ist möglicherweise aufwändiger die Angreifer zu identifizieren.
+Somit bleibt der Angriff länger von automatischen Filtern unerkannt und es ist möglicherweise aufwändiger, die Angreifer zu identifizieren.
 @quentin
 
 // - Grundlagen/Fakten darstellen

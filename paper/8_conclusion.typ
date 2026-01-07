@@ -6,7 +6,7 @@
 - Future Work
   - SSH Keys vergleichen
   - Andere BGP-Quellen hinzufügen, z.B. RouteViews
-  - Protokoll um eigene Dateneinspeisung zu ermöglichen
+  - Protokoll, um eigene Dateneinspeisung zu ermöglichen
   - Alerting System
 
 #pagebreak()
