@@ -13,7 +13,11 @@ Diese Arbeit hat in gleicher oder ähnlicher Form noch keiner Prüfungsbehörde 
   row-gutter: 0.5em,
   columns: (1fr, 1fr),
   date(),
-  line(length: 12em, stroke: 0.5pt),
+  [
+    #image("images/signature.png", width: 7em)
+    #v(0.25em, weak: true)
+    #line(length: 12em, stroke: 0.5pt)
+  ],
   [],
   author,
 )

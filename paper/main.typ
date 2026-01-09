@@ -1,6 +1,7 @@
 #import "util.typ": accent_color
 
-#let pre_release = true
+// #let pre_release = true
+#let pre_release = false
 #metadata(pre_release) <pre_release>
 
 #set page(paper: "a4", margin: 26.5mm)
@@ -32,7 +33,7 @@
 #counter(page).update(1)
 
 #include "statement.typ"
-#include "abstract.typ"
+// #include "abstract.typ"
 #include "toc.typ"
 
 #let get_first_heading_on_page(loc) = {
@@ -72,14 +73,8 @@
 #include "3_related_work.typ"
 #include "4_data_sources.typ"
 #include "5_concept.typ"
-
-#place(center)[
-  #line(length: 50%)
-  Bis hier bis zum 09.01.2026
-]
-
-#include "6_implementation.typ"
-#include "7_evaluation.typ"
-#include "8_conclusion.typ"
+// #include "6_implementation.typ"
+// #include "7_evaluation.typ"
+// #include "8_conclusion.typ"
 #include "bibliography.typ"
 #include "figures.typ"
