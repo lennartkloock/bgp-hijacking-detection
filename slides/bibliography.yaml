@@ -1,0 +1,149 @@
+# https://github.com/typst/hayagriva/blob/main/docs/file-format.md
+
+# https://datatracker.ietf.org/doc/rfc1654/bibtex
+rfc1654:
+  # type: Reference
+  type: Misc
+  title: A Border Gateway Protocol 4 (BGP-4)
+  author: ["Rekhter, Yakov", "Li, Tony"]
+  date: 1994-06
+  publisher: RFC Editor
+  page-total: 56
+  url:
+    value: https://www.rfc-editor.org/info/rfc1654
+    date: 2025-12-15
+  serial-number:
+    doi: 10.17487/RFC1654
+  language: en
+youtube-hijack:
+  type: Web
+  title: "YouTube Hijacking: A RIPE NCC RIS case study"
+  author: RIPE NCC
+  date: 2008-03-17
+  url:
+    value: https://www.ripe.net/about-us/news/youtube-hijacking-a-ripe-ncc-ris-case-study/
+    date: 2025-12-15
+crypto-hijack:
+  type: Web
+  title: "How 3 hours of inaction from Amazon cost cryptocurrency holders \\$235,000"
+  author: Goodin, Dan
+  publisher: Ars Technica
+  date: 2022-09-23
+  url:
+    value: https://arstechnica.com/information-technology/2022/09/how-3-hours-of-inaction-from-amazon-cost-cryptocurrency-holders-235000/
+    date: 2025-12-25
+ru-RPKI-ready:
+  type: Article
+  title: "ru-RPKI-ready: the Road Left to Full ROA Adoption"
+  author: ["Gouda, Deepak", "Fontugne, Romain", "Testart, Cecilia"]
+  date: 2025-11-21
+  publisher: Association for Computing Machinery
+  url: https://doi.org/10.1145/3730567.3764452
+  serial-number:
+    doi: 10.1145/3730567.3764452
+  page-total: 15
+  page-range: 415-429
+  parent:
+    type: Proceedings
+    title: Proceedings of the 2025 ACM Internet Measurement Conference
+    location: New York, NY, USA
+    serial-number:
+      isbn: 9798400718601
+quentin:
+  type: Thesis
+  title: Towards uncovering BGP hijacking attacks
+  author: Jacquemart, Quentin
+  url: https://pastel.hal.science/tel-01412800
+  date: 2015-10
+  organization: Télécom ParisTech
+phas:
+  type: Article
+  title: "PHAS: A Prefix Hijack Alert System"
+  author: ["Lad, Mohit", "Massey, Daniel", "Pei, Dan", "Wu, Yiguo", "Zhang, Beichuan", "Zhang, Lixia"]
+  date: 2006-07
+  publisher: USENIX Association
+  url: https://www.usenix.org/conference/15th-usenix-security-symposium/phas-prefix-hijack-alert-system
+  parent:
+    type: Proceedings
+    title: 15th USENIX Security Symposium (USENIX Security 06)
+    location: Vancouver, B.C. Canada
+bgpalerter:
+  type: Web
+  title: BGPalerter
+  date: 2019-07-18
+  url:
+    value: https://github.com/nttgin/BGPalerter
+    date: 2026-01-03
+artemis:
+  type: Web
+  title: "ARTEMIS: Real-Time Detection and Automatic Mitigation for BGP Prefix Hijacking"
+  author: INSPIRE Group
+  date: 2018-11-26
+  url:
+    value: https://github.com/FORTH-ICS-INSPIRE/artemis
+    date: 2026-01-03
+hu-et-al:
+  type: Article
+  title: Accurate Real-time Identification of IP Prefix Hijacking
+  author: ["Hu, Xin", "Mao, Z. Morley"]
+  date: 2007
+  page-range: 3-17
+  serial-number:
+    doi: 10.1109/SP.2007.7
+  parent:
+    type: Proceedings
+    title: 2007 IEEE Symposium on Security and Privacy (SP '07)
+    location: Berkeley, CA, USA
+shi-et-al:
+  type: Article
+  title: Detecting prefix hijackings in the internet with Argus
+  author: ["Shi, Xingang", "Xiang, Yang", "Wang, Zhiliang", "Yin, Xia", "Wu, Jianping"]
+  date: 2012
+  page-range: 15-28
+  parent:
+    type: Proceedings
+    title: Proceedings of the 2012 Internet Measurement Conference
+    location: Boston, Massachusetts, USA
+wirtgen:
+  type: Article
+  title: A first step towards checking BGP routes in the dataplane
+  author: ["Wirtgen, Thomas", "Bonaventure, Olivier"]
+  date: 2022
+  page-range: 50-57
+  publisher: Association for Computing Machinery
+  parent:
+    type: Proceedings
+    title: Proceedings of the ACM SIGCOMM Workshop on Future of Internet Routing & Addressing
+    location: Amsterdam, Netherlands
+bgpwatch:
+  type: Web
+  title: BGPWatch — A comprehensive platform for detecting and diagnosing hijacking incidents
+  author: ["Wang, Jilong", "An, Changqing"]
+  date: 2024-02-07
+  url:
+    value: https://blog.apnic.net/2024/02/07/bgpwatch-a-comprehensive-platform-for-detecting-and-diagnosing-hijacking-incidents/
+    date: 2026-01-03
+ripe-atlas-stats:
+  type: Web
+  title: RIPE Atlas - Statistics
+  url:
+    value: https://atlas.ripe.net/statistics/coverage
+    date: 2026-01-06
+ripe-ris-docs:
+  type: Web
+  title: Routing Information Service (RIS) – RIPE Network Coordination Centre
+  url:
+    value: https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/
+    date: 2026-01-06
+ripe-ris-peer-count:
+  type: Web
+  title: RIS Peer Count | RIPE NCC
+  url:
+    value: https://stat.ripe.net/docs/data-api/api-endpoints/ris-peer-count
+    date: 2026-01-06
+shodan-website:
+  type: Web
+  title: Shodan Search Engine
+  url:
+    value: https://www.shodan.io/
+    date: 2026-01-06
