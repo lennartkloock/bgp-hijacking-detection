@@ -1,0 +1,28 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0" version="29.3.4">
+  <diagram name="Page-1" id="VcdCOFBY4QMz81YHPLw-">
+    <mxGraphModel dx="1978" dy="1300" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="lA47TB_DV21EWHBtwSHu-8" parent="1" style="fontColor=#0066CC;verticalAlign=top;verticalLabelPosition=bottom;labelPosition=center;align=center;html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;gradientDirection=north;strokeWidth=2;shape=mxgraph.networks.pc;fontStyle=0;fontSize=12;aspect=fixed;" value="" vertex="1">
+          <mxGeometry height="50" width="71.43" x="184.28" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="lA47TB_DV21EWHBtwSHu-9" parent="1" style="fontColor=#0066CC;verticalAlign=top;verticalLabelPosition=bottom;labelPosition=center;align=center;html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;gradientDirection=north;strokeWidth=2;shape=mxgraph.networks.web_server;fontStyle=0;fontSize=12;aspect=fixed;" value="YouTube" vertex="1">
+          <mxGeometry height="60" width="60" x="189.99" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="qknZrQTHyXVOm7RXwELa-5" edge="1" parent="1" source="qknZrQTHyXVOm7RXwELa-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0066CC;endArrow=none;endFill=0;strokeWidth=2;sourcePerimeterSpacing=4;targetPerimeterSpacing=24;" target="lA47TB_DV21EWHBtwSHu-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="qknZrQTHyXVOm7RXwELa-3" parent="1" style="html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;gradientDirection=north;strokeWidth=2;shape=mxgraph.networks.cloud;fontColor=#0066CC;fontStyle=0" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Internet&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="90" x="175" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="qknZrQTHyXVOm7RXwELa-6" edge="1" parent="1" source="lA47TB_DV21EWHBtwSHu-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0066CC;endArrow=none;endFill=0;strokeWidth=2;sourcePerimeterSpacing=4;targetPerimeterSpacing=4;" target="qknZrQTHyXVOm7RXwELa-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="230" y="296" as="sourcePoint" />
+            <mxPoint x="230" y="224" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

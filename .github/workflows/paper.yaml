@@ -1,0 +1,45 @@
+name: Paper
+on: push
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    outputs:
+      pre_release: ${{ steps.query.outputs.pre_release }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: typst-community/setup-typst@v4.3.0
+      - id: query
+        name: Query if pre release
+        run: echo "pre_release=$(typst query paper/main.typ "<pre_release>" --field value --one)" >> $GITHUB_OUTPUT
+      - name: Compile main.typ
+        run: typst compile paper/main.typ paper.pdf --input is_ci=true
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper
+          path: paper.pdf
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: compile
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: paper
+      - name: Delete old release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete paper-latest --cleanup-tag
+      - name: Create new release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: paper-latest
+          name: Paper
+          files: paper.pdf
+          prerelease: ${{ needs.compile.outputs.pre_release }}
+          generate_release_notes: false
