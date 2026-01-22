@@ -36,7 +36,7 @@
     - Router sind durch BGP verbunden und tauschen Routing-Informationen aus
     - Jeder Router pflegt eine Routing-Tabelle mit Pfaden zu verschiedenen IP-Präfixen
     #example_table
-    - #stress["Next Hop" speichert die IP-Adresse des nächsten Routers auf dem Pfad zum Zielpräfix]
+    - #stress["Next Hop" speichert die IP-Adresse des nächsten Routers auf dem Pfad zum Zielpräfix] @rfc1654
   ]
 ]
 

@@ -27,8 +27,8 @@
 #include "1_recap.typ"
 #include "2_bgp.typ"
 #include "3_prefix_hijacking.typ"
-#include "4_concept.typ"
-#include "5_implementation.typ"
+#include "4_data_sources.typ"
+#include "5_concept.typ"
 
 // Bibliography
 #bibliography-slide(
