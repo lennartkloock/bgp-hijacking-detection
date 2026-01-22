@@ -1,4 +1,6 @@
-# BGP Hijacking Detection
+# Live Detection of Prefix Hijacking Attacks Using TLS Certificates <small>Test</small>
+
+***Echtzeiterkennung von Prefix-Hijacking-Angriffen mithilfe von TLS-Zertifikaten***
 
 University project (mostly in German)
 
