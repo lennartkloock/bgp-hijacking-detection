@@ -1,4 +1,4 @@
-# Live Detection of Prefix Hijacking Attacks Using TLS Certificates <small>Test</small>
+# Live Detection of Prefix Hijacking Attacks Using TLS Certificates
 
 ***Echtzeiterkennung von Prefix-Hijacking-Angriffen mithilfe von TLS-Zertifikaten***
 
