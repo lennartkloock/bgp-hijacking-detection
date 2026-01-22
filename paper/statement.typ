@@ -14,7 +14,9 @@ Diese Arbeit hat in gleicher oder ähnlicher Form noch keiner Prüfungsbehörde 
   columns: (1fr, 1fr),
   date(),
   [
-    #image("images/signature.png", width: 7em)
+    #if "is_ci" not in sys.inputs {
+      image("images/signature.png", width: 7em)
+    }
     #v(0.25em, weak: true)
     #line(length: 12em, stroke: 0.5pt)
   ],
