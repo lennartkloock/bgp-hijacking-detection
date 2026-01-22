@@ -2,17 +2,21 @@
 
 #title-slide[Das Border Gateway Protocol (BGP)]
 
-#let example_table = align(
-  center,
-  table(
-    columns: 4, align: left, table.header[*Prefix*][*AS Path*][*Next Hop*][*Interface*],
-    [`192.0.2.0/24`], [`1,2,3`], [`192.0.2.1`], [`eth2`],
-    [`198.51.100.0/24`], [`1,3`], [`198.51.100.1`], [`eth0`],
-    [`203.0.113.0/24`], [`1,2`], [`203.0.113.1`], [`eth1`],
-    [...], [...], [...], [...],
-    [`0.0.0.0/0`], [-], [`203.0.113.2`], [`eth1`],
+#let example_table = [
+  #set align(horizon)
+  #cols(
+    columns: (auto, auto),
+    table(
+      columns: 4, align: left, table.header[*Prefix*][*AS Path*][*Next Hop*][*Interface*],
+      [`192.0.2.0/24`], [`2,3`], [`198.51.100.1`], [`eth0`],
+      [`198.51.100.0/24`], [`2`], [`198.51.100.1`], [`eth0`],
+      [`203.0.113.0/24`], [`4`], [`203.0.113.1`], [`eth1`],
+      [...], [...], [...], [...],
+      [`0.0.0.0/0`], [-], [`203.0.113.2`], [`eth1`],
+    ),
+    image("images/simple_bgp.drawio.pdf", height: 8.5em),
   )
-)
+]
 
 #slide(title: "BGP")[
   #box(height: 14em)[
