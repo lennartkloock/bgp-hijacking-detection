@@ -24,7 +24,7 @@ Um das vorgestellte Konzept umzusetzen, wird das Projekt in mehrere Komponenten 
 // 1. Detection
 //   - Globale Routing-Tabelle pflegen
 //   - Live Announcements empfangen und Routing-Tabelle aktualisieren
-//   - Live MOAS Präfixe erkennen und auf MQ (Redis?) schicken
+//   - Live MOAS Präfixe erkennen und auf MQ (Postgres?) schicken
 // 2. Evaluation
 //   - MOAS Präfixe von MQ empfangen
 //   - MOAS Incident in Datenbank erstellen
