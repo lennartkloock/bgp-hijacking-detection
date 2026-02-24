@@ -1,5 +1,5 @@
 use detection::global::Global;
-use detection::services::DetectionSvc;
+use detection::service::DetectionSvc;
 
 scuffle_bootstrap::main! {
     Global {

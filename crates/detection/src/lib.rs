@@ -3,6 +3,7 @@
 #![deny(unreachable_pub)]
 #![deny(clippy::mod_module_files)]
 
+pub mod config;
 pub mod global;
 pub(crate) mod ripe_ris;
-pub mod services;
+pub mod service;

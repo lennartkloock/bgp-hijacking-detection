@@ -5,5 +5,5 @@ target/
 paper/*.pdf
 slides/*.pdf
 
-# diesel
-.diesel_lock
+# Local files
+local/

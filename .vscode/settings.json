@@ -9,5 +9,15 @@
         "Selbstständigkeitserklärung",
         "Shodan",
         "Télécommunications"
+    ],
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "connectString": "postgres://postgres:postgres@localhost/",
+            "name": "localhost"
+        }
     ]
 }
