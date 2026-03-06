@@ -1,38 +1,33 @@
-CREATE TABLE "prefixes" (
-    "prefix" CIDR NOT NULL,
-    "origin_asn" BIGINT NOT NULL,
-    "announced_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "withdrawn_at" TIMESTAMPTZ DEFAULT NULL,
-    PRIMARY KEY ("prefix", "origin_asn")
+-- The live routing table
+CREATE TABLE routes (
+    prefix CIDR NOT NULL,
+    origin_asn BIGINT[] NOT NULL,
+    peer_asn BIGINT NOT NULL,
+    peer_ip INET NOT NULL,
+    host VARCHAR(20) NOT NULL, -- e.g. "rrc21"
+    as_path JSONB NOT NULL, -- ordered, origin last
+    UNIQUE (prefix, peer_ip, host) -- one route per peering session
 );
 
-CREATE INDEX idx_prefixes_prefix_gist ON prefixes USING GIST (prefix inet_ops);
+CREATE INDEX ON routes (prefix);
+CREATE INDEX ON routes (origin_asn);
+CREATE INDEX ON routes USING GIST (prefix inet_ops);
 
--- CREATE TABLE "moas" (
---     "prefix" CIDR NOT NULL,
---     "new_origin_asn" BIGINT NOT NULL,
---     "existing_origin_asn" BIGINT NOT NULL,
---     "detected_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
--- );
+CREATE TYPE event_type AS ENUM ('announcement', 'withdrawal');
 
--- CREATE OR REPLACE FUNCTION detect_moas() RETURNS TRIGGER AS $$ BEGIN
---     INSERT INTO moas (
---         prefix,
---         new_origin_asn,
---         existing_origin_asn
---     )
---     SELECT p.prefix,
---         NEW.origin_asn,
---         p.origin_asn
---     FROM prefixes p
---     WHERE p.prefix = NEW.prefix
---         AND p.origin_asn != NEW.origin_asn
---         AND p.ctid != NEW.ctid;
+-- Log of all raw UPDATE events
+CREATE TABLE events (
+    id BIGSERIAL PRIMARY KEY,
+    timestamp TIMESTAMPTZ NOT NULL,
+    event_type event_type NOT NULL,
+    prefix CIDR NOT NULL,
+    origin_asn BIGINT[], -- NULL for withdrawals
+    peer_asn BIGINT NOT NULL,
+    peer_ip INET NOT NULL,
+    host VARCHAR(20) NOT NULL, -- e.g. "rrc21"
+    next_hop INET[], -- NULL for withdrawals
+    as_path JSONB -- NULL for withdrawals
+);
 
---     RETURN NEW;
--- END;
--- $$ LANGUAGE plpgsql;
-
--- CREATE TRIGGER trigger_detect_moas
--- AFTER
--- INSERT ON prefixes FOR EACH ROW EXECUTE FUNCTION detect_moas();
+CREATE INDEX ON events(prefix, timestamp DESC);
+CREATE INDEX ON events(origin_asn);

@@ -1,0 +1,21 @@
+services:
+  ingest:
+    build: ./crates/ingest
+    volumes:
+      - ./local/ripe_cache:/app/local/cache
+    depends_on:
+      postgres:
+        condition: service_started
+    command: ["-o", "db_url=postgres://postgres:postgres@postgres/", "-o", "log_level=info,ingest=debug"]
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql
+
+volumes:
+  postgres:

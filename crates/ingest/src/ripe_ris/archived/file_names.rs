@@ -1,0 +1,53 @@
+use chrono::{NaiveDateTime, TimeDelta, Timelike};
+use reqwest::Url;
+
+pub(crate) fn current_bview_date() -> NaiveDateTime {
+    let now = chrono::Utc::now().naive_utc();
+    now.with_hour((now.hour() / 8) * 8)
+        .unwrap()
+        .with_minute(0)
+        .unwrap()
+        .with_second(0)
+        .unwrap()
+        .with_nanosecond(0)
+        .unwrap()
+}
+
+pub(crate) fn update_dates_since(since: NaiveDateTime) -> Vec<NaiveDateTime> {
+    let mut dates = vec![];
+
+    let now = chrono::Utc::now().naive_utc();
+
+    let mut current = since
+        .with_minute((since.minute() / 5) * 5)
+        .unwrap()
+        .with_second(0)
+        .unwrap()
+        .with_nanosecond(0)
+        .unwrap();
+
+    while current < now {
+        dates.push(current);
+        current = current.checked_add_signed(TimeDelta::minutes(5)).unwrap();
+    }
+
+    dates
+}
+
+pub(crate) fn bview_url(rrc: &str, date: NaiveDateTime) -> Url {
+    let month = date.format("%Y.%m").to_string();
+    let date_str = date.format("%Y%m%d.%H%M").to_string();
+
+    format!("https://data.ris.ripe.net/{rrc}/{month}/bview.{date_str}.gz")
+        .parse()
+        .unwrap()
+}
+
+pub(crate) fn update_url(rrc: &str, date: NaiveDateTime) -> Url {
+    let month = date.format("%Y.%m").to_string();
+    let date_str = date.format("%Y%m%d.%H%M").to_string();
+
+    format!("https://data.ris.ripe.net/{rrc}/{month}/updates.{date_str}.gz")
+        .parse()
+        .unwrap()
+}

@@ -2,7 +2,6 @@
 
 use std::{net::IpAddr, str::FromStr};
 
-use ipnetwork::IpNetwork;
 use serde::Deserialize;
 
 /// https://ris-live.ripe.net/manual/#client-messages
@@ -23,7 +22,7 @@ pub(crate) struct RisLiveSubscriptionFilter {
     typ: Option<String>,
     require: Option<String>,
     peer: Option<String>,
-    prefix: Option<Vec<IpNetwork>>,
+    prefix: Option<Vec<cidr::IpCidr>>,
     more_specific: Option<bool>,
     less_specific: Option<bool>,
     socket_options: Option<RisLiveSocketOptions>,
@@ -36,6 +35,14 @@ pub(crate) struct RisLiveSocketOptions {
     pub acknowledge: Option<bool>,
 }
 
+fn u32_from_str<'de, D>(deserializer: D) -> Result<u32, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    u32::from_str(&s).map_err(serde::de::Error::custom)
+}
+
 /// https://ris-live.ripe.net/manual/#server-messages
 #[derive(Debug, Clone, serde::Deserialize, PartialEq)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
@@ -44,7 +51,8 @@ pub(crate) enum RisLiveServerMessage {
     RisMessage {
         timestamp: f64,
         peer: IpAddr,
-        peer_asn: String,
+        #[serde(deserialize_with = "u32_from_str")]
+        peer_asn: u32,
         id: String,
         raw: Option<String>,
         host: String,
@@ -73,7 +81,7 @@ pub(crate) enum RisMessageType {
         med: Option<i32>,
         aggregator: Option<String>,
         announcements: Option<Vec<RisMessageUpdateAnnouncement>>,
-        withdrawals: Option<Vec<IpNetwork>>,
+        withdrawals: Option<Vec<cidr::IpCidr>>,
     },
     Keepalive,
     Open {
@@ -105,6 +113,56 @@ impl From<u32> for AsPathElement {
     }
 }
 
+impl AsPathElement {
+    pub(crate) fn to_vec(&self) -> Vec<u32> {
+        match self {
+            AsPathElement::Asn(asn) => vec![*asn],
+            AsPathElement::AsSet(set) => set.clone(),
+        }
+    }
+}
+
+// impl AsPathElement {
+//     /// Splits the given path into multiple paths if it ends in an AS set.
+//     /// If it doesn't end in an AS set, returns just one path.
+//     ///
+//     /// Returns an error if there is an AS set which doesn't appear at the end of the path.
+//     pub(crate) fn split_path(path: &[AsPathElement]) -> anyhow::Result<Vec<Vec<u32>>> {
+//         let mut paths = Vec::new();
+
+//         match path.split_last() {
+//             None => {}
+//             Some((AsPathElement::AsSet(as_set), path_except_last)) => {
+//                 let path: Vec<_> = path_except_last
+//                     .into_iter()
+//                     .map(|asn| match asn {
+//                         AsPathElement::AsSet(_) => anyhow::bail!("as set cannot be in path"),
+//                         AsPathElement::Asn(asn) => Ok(*asn),
+//                     })
+//                     .collect::<Result<_, _>>()?;
+
+//                 for asn in as_set {
+//                     let mut path = path.clone();
+//                     path.push(*asn);
+//                     paths.push(path);
+//                 }
+//             }
+//             Some((AsPathElement::Asn(_), _)) => {
+//                 let path = path
+//                     .into_iter()
+//                     .map(|asn| match asn {
+//                         AsPathElement::AsSet(_) => anyhow::bail!("as set cannot be in path"),
+//                         AsPathElement::Asn(asn) => Ok(*asn),
+//                     })
+//                     .collect::<Result<_, _>>()?;
+//                 paths.push(path);
+//             }
+//         }
+
+//         Ok(paths)
+//     }
+// }
+
 #[derive(Debug, Clone, serde::Deserialize, PartialEq, Eq)]
 pub(crate) struct BgpCommunity(pub u32, pub u32);
 
@@ -127,7 +185,7 @@ where
 pub(crate) struct RisMessageUpdateAnnouncement {
     #[serde(deserialize_with = "deserialize_comma_seperated")]
     pub next_hop: Vec<IpAddr>,
-    pub prefixes: Vec<IpNetwork>,
+    pub prefixes: Vec<cidr::IpCidr>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize, PartialEq, Eq)]
@@ -155,8 +213,18 @@ pub(crate) enum RisPeerState {
 #[cfg(test)]
 mod tests {
     use crate::ripe_ris::live::protocol::{
-        BgpCommunity, RisLiveServerMessage, RisMessageType, RisMessageUpdateAnnouncement,
+        AsPathElement, BgpCommunity, RisLiveServerMessage, RisMessageType,
+        RisMessageUpdateAnnouncement,
     };
+
+    // #[test]
+    // fn split_paths() {
+    //     let path1 = [AsPathElement::Asn(1), AsPathElement::Asn(2), AsPathElement::Asn(3), AsPathElement::Asn(4)];
+    //     assert_eq!(AsPathElement::split_path(&path1).unwrap(), vec![vec![1, 2, 3, 4]]);
+
+    //     let path2 = [AsPathElement::Asn(1), AsPathElement::Asn(2), AsPathElement::Asn(3), AsPathElement::AsSet(vec![4, 5])];
+    //     assert_eq!(AsPathElement::split_path(&path2).unwrap(), vec![vec![1, 2, 3, 4], vec![1, 2, 3, 5]]);
+    // }
 
     #[test]
     fn ris_message_example_deserialize() {
@@ -174,7 +242,7 @@ mod tests {
             RisLiveServerMessage::RisMessage {
                 timestamp: 1568279357.18,
                 peer: "192.0.2.0".parse().unwrap(),
-                peer_asn: "64496".to_string(),
+                peer_asn: 64496,
                 id: "21-192-0-2-0-11187052".to_string(),
                 raw: None,
                 host: "rrc21".to_string(),
@@ -232,7 +300,7 @@ mod tests {
             RisLiveServerMessage::RisMessage {
                 timestamp: 1771179888.49,
                 peer: "2001:7f8:d:ff::96".parse().unwrap(),
-                peer_asn: "35280".to_string(),
+                peer_asn: 35280,
                 id: "2001:7f8:d:ff::96-019c628c4f6a0001".to_string(),
                 raw: None,
                 host: "rrc07.ripe.net".to_string(),
