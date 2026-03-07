@@ -14,10 +14,7 @@ use crate::{
 
 pub(crate) mod file_names;
 
-pub(crate) async fn download_file(
-    url: Url,
-    cache_dir: &Path,
-) -> anyhow::Result<Option<PathBuf>> {
+pub(crate) async fn download_file(url: Url, cache_dir: &Path) -> anyhow::Result<Option<PathBuf>> {
     let file_path = cache_dir.join(url.path().trim_start_matches('/'));
 
     if file_path.exists() {

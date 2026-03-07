@@ -10,7 +10,7 @@ use crate::{
         batcher::{EventInsertBatcher, RouteInsertBatcher, RoutesBatcher},
     },
     global::Global,
-    ripe_ris,
+    ripe_ris::{self, archived::file_names::next_update_date},
 };
 
 pub(crate) async fn seed(
@@ -103,28 +103,24 @@ async fn process_updates(
 
     tracing::info!(since = ?since, "starting to process updates");
 
-    let mut update_files = vec![];
-    for update_date in ripe_ris::archived::file_names::update_dates_since(since) {
-        let url = ripe_ris::archived::file_names::update_url(rrc, update_date);
-        let file = ripe_ris::archived::download_file(url, &global.config.cache_dir).await?;
-
-        if let Some(file) = file {
-            update_files.push(file);
-        } else {
-            tracing::warn!(update_date = ?update_date, "update file not found, skipping");
-        }
-    }
-
     let mut event_batcher = EventInsertBatcher::new(global.db.clone()).await?;
     let mut route_batcher = RoutesBatcher::new(global.db.clone());
 
-    for update_file in update_files {
-        if ctx.is_done() {
-            break;
-        }
+    let mut current = since;
 
-        tracing::info!(file = ?update_file, "parsing update file");
-        let parser = bgpkit_parser::BgpkitParser::new(&update_file.display().to_string())
+    while let Some(update_date) = next_update_date(current)
+        && !ctx.is_done()
+    {
+        current = update_date;
+        let url = ripe_ris::archived::file_names::update_url(rrc, update_date);
+        let Some(file) = ripe_ris::archived::download_file(url, &global.config.cache_dir).await?
+        else {
+            tracing::warn!(update_date = ?update_date, "update file not found, skipping");
+            continue;
+        };
+
+        tracing::info!(file = ?file, "parsing update file");
+        let parser = bgpkit_parser::BgpkitParser::new(&file.display().to_string())
             .context("failed to create bgpkit parser")?;
 
         for elem in parser.into_elem_iter() {

@@ -13,9 +13,7 @@ pub(crate) fn current_bview_date() -> NaiveDateTime {
         .unwrap()
 }
 
-pub(crate) fn update_dates_since(since: NaiveDateTime) -> Vec<NaiveDateTime> {
-    let mut dates = vec![];
-
+pub(crate) fn next_update_date(since: NaiveDateTime) -> Option<NaiveDateTime> {
     let now = chrono::Utc::now().naive_utc();
 
     let mut current = since
@@ -26,12 +24,9 @@ pub(crate) fn update_dates_since(since: NaiveDateTime) -> Vec<NaiveDateTime> {
         .with_nanosecond(0)
         .unwrap();
 
-    while current < now {
-        dates.push(current);
-        current = current.checked_add_signed(TimeDelta::minutes(5)).unwrap();
-    }
+    current = current.checked_add_signed(TimeDelta::minutes(5)).unwrap();
 
-    dates
+    if current < now { Some(current) } else { None }
 }
 
 pub(crate) fn bview_url(rrc: &str, date: NaiveDateTime) -> Url {
