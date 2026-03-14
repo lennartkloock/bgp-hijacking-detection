@@ -24,13 +24,6 @@ impl scuffle_bootstrap::global::Global for Global {
 
         tracing::info!("init");
 
-        if rustls::crypto::aws_lc_rs::default_provider()
-            .install_default()
-            .is_err()
-        {
-            anyhow::bail!("failed to install aws-lc-rs as default TLS provider");
-        }
-
         let db = db::connect(&config.db_url).await?;
 
         Ok(Arc::new(Self { db, config }))

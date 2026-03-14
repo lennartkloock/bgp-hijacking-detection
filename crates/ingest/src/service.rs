@@ -1,12 +1,9 @@
 use std::{sync::Arc, time::Instant};
 
+use db::batcher::{EventInsertBatcher, RoutesBatcher};
 use scuffle_context::ContextFutExt;
 
-use crate::{
-    db::batcher::{EventInsertBatcher, RoutesBatcher},
-    global::Global,
-    ripe_ris,
-};
+use crate::{global::Global, ripe_ris};
 
 mod handler;
 mod seeding;

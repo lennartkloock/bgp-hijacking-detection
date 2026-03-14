@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use anyhow::Context;
+use db::{
+    EventType, NewEvent, Route,
+    batcher::{EventInsertBatcher, RoutesBatcher},
+};
 
 use crate::{
-    db::{
-        EventType, NewEvent, Route,
-        batcher::{EventInsertBatcher, RoutesBatcher},
-    },
     global::Global,
     ripe_ris::{
         live::protocol::{AsPathElement, RisLiveServerMessage, RisMessageType},

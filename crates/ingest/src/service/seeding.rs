@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use chrono::NaiveDateTime;
+use db::{
+    self,
+    batcher::{EventInsertBatcher, RouteInsertBatcher, RoutesBatcher},
+};
 
 use crate::{
     bgp::{Event, EventType},
-    db::{
-        self,
-        batcher::{EventInsertBatcher, RouteInsertBatcher, RoutesBatcher},
-    },
     global::Global,
     ripe_ris::{self, archived::file_names::next_update_date},
 };

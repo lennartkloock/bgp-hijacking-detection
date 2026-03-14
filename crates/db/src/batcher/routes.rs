@@ -5,96 +5,9 @@ use cidr::IpCidr;
 use fxhash::{FxBuildHasher, FxHashMap};
 use tokio_postgres::{binary_copy::BinaryCopyInWriter, types::Type};
 
-use crate::db::{self, NewEvent, Route};
+use crate::{DbPool, Route};
 
 const BATCH_SIZE: usize = 10000;
-
-pub(crate) struct EventInsertBatcher {
-    db: db::DbPool,
-    batch: Vec<NewEvent>,
-    event_type_pg: Type,
-}
-
-impl EventInsertBatcher {
-    pub(crate) async fn new(db: db::DbPool) -> anyhow::Result<Self> {
-        let event_type_pg = {
-            let row = db
-                .get()
-                .await
-                .context("failed to connect to db")?
-                .query_one("SELECT NULL::event_type", &[])
-                .await?;
-            row.columns()[0].type_().clone()
-        };
-
-        Ok(Self {
-            db,
-            batch: Vec::with_capacity(BATCH_SIZE),
-            event_type_pg,
-        })
-    }
-
-    pub(crate) async fn insert(&mut self, event: NewEvent) -> anyhow::Result<Option<u64>> {
-        self.batch.push(event);
-
-        if self.batch.len() < BATCH_SIZE {
-            return Ok(None);
-        }
-
-        self.finish().await.map(Some)
-    }
-
-    pub(crate) async fn finish(&mut self) -> anyhow::Result<u64> {
-        let mut batch = Vec::with_capacity(BATCH_SIZE);
-        std::mem::swap(&mut self.batch, &mut batch);
-
-        let conn = self.db.get().await.context("failed to get connection")?;
-        let sink = conn.copy_in("COPY events (timestamp, event_type, prefix, origin_asn, peer_asn, peer_ip, host, next_hop, as_path) FROM STDIN BINARY")
-            .await
-            .context("failed to open writer")?;
-        let mut writer = pin!(BinaryCopyInWriter::new(
-            sink,
-            &[
-                Type::TIMESTAMPTZ,
-                self.event_type_pg.clone(),
-                Type::CIDR,
-                Type::INT8_ARRAY,
-                Type::INT8,
-                Type::INET,
-                Type::VARCHAR,
-                Type::INET_ARRAY,
-                Type::JSONB
-            ]
-        ));
-
-        for event in batch {
-            writer
-                .as_mut()
-                .write(&[
-                    &event.timestamp,
-                    &event.event_type,
-                    &event.prefix,
-                    &event.origin_asn,
-                    &event.peer_asn,
-                    &event.peer_ip,
-                    &event.host,
-                    &event.next_hop,
-                    &event.as_path,
-                ])
-                .await
-                .context("failed to write row")?;
-        }
-
-        let rows = writer
-            .finish()
-            .await
-            .context("failed to write batch to db")?;
-
-        tracing::debug!(rows, "wrote route batch to db");
-
-        Ok(rows)
-    }
-}
 
 #[derive(Debug)]
 enum RouteOperation {
@@ -102,20 +15,20 @@ enum RouteOperation {
     Delete,
 }
 
-pub(crate) struct RoutesBatcher {
-    db: db::DbPool,
+pub struct RoutesBatcher {
+    db: DbPool,
     operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
 }
 
 impl RoutesBatcher {
-    pub(crate) fn new(db: db::DbPool) -> Self {
+    pub fn new(db: DbPool) -> Self {
         Self {
             db,
             operations: FxHashMap::with_capacity_and_hasher(1000, FxBuildHasher::new()),
         }
     }
 
-    pub(crate) async fn upsert(&mut self, route: Route) -> anyhow::Result<Option<u64>> {
+    pub async fn upsert(&mut self, route: Route) -> anyhow::Result<Option<u64>> {
         let k = (route.prefix, route.peer_ip, route.host.clone());
         self.operations.insert(k, RouteOperation::Upsert(route));
 
@@ -126,7 +39,7 @@ impl RoutesBatcher {
         self.finish().await.map(Some)
     }
 
-    pub(crate) async fn delete(
+    pub async fn delete(
         &mut self,
         prefix: IpCidr,
         peer_ip: IpAddr,
@@ -142,7 +55,7 @@ impl RoutesBatcher {
         self.finish().await.map(Some)
     }
 
-    pub(crate) async fn finish(&mut self) -> anyhow::Result<u64> {
+    pub async fn finish(&mut self) -> anyhow::Result<u64> {
         let conn = self
             .db
             .get()
@@ -186,14 +99,19 @@ impl RoutesBatcher {
 
             rows += conn
                 .execute(
-                    "INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path)
-                SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, as_path
-                FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::VARCHAR[], $6::JSONB[])
-                AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, as_path)
-                ON CONFLICT (prefix, peer_ip, host) DO UPDATE SET
-                    origin_asn = EXCLUDED.origin_asn,
-                    peer_asn = EXCLUDED.peer_asn,
-                    as_path = EXCLUDED.as_path;",
+                    "WITH upserted AS (
+                        INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path)
+                        SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, as_path
+                        FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::VARCHAR[], $6::JSONB[])
+                        AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, as_path)
+                        ON CONFLICT (prefix, peer_ip, host) DO UPDATE SET
+                            origin_asn = EXCLUDED.origin_asn,
+                            peer_asn = EXCLUDED.peer_asn,
+                            as_path = EXCLUDED.as_path
+                        RETURNING prefix
+                    )
+                    SELECT pg_notify('bgp_update', prefix::TEXT)
+                    FROM (SELECT DISTINCT prefix FROM upserted) AS changed;",
                     &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &as_path],
                 )
                 .await
@@ -231,20 +149,20 @@ impl RoutesBatcher {
     }
 }
 
-pub(crate) struct RouteInsertBatcher {
-    db: db::DbPool,
+pub struct RouteInsertBatcher {
+    db: DbPool,
     batch: Vec<Route>,
 }
 
 impl RouteInsertBatcher {
-    pub(crate) fn new(db: db::DbPool) -> Self {
+    pub fn new(db: DbPool) -> Self {
         Self {
             db,
             batch: Vec::with_capacity(BATCH_SIZE),
         }
     }
 
-    pub(crate) async fn insert(&mut self, route: Route) -> anyhow::Result<Option<u64>> {
+    pub async fn insert(&mut self, route: Route) -> anyhow::Result<Option<u64>> {
         self.batch.push(route);
 
         if self.batch.len() < BATCH_SIZE {
@@ -254,11 +172,12 @@ impl RouteInsertBatcher {
         self.finish().await.map(Some)
     }
 
-    pub(crate) async fn finish(&mut self) -> anyhow::Result<u64> {
+    pub async fn finish(&mut self) -> anyhow::Result<u64> {
         let mut batch = Vec::with_capacity(BATCH_SIZE);
         std::mem::swap(&mut self.batch, &mut batch);
 
         let conn = self.db.get().await.context("failed to get connection")?;
+        // We don't NOTIFY for each prefix here because we can only detect hijackings live.
         let sink = conn.copy_in("COPY routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path) FROM STDIN BINARY")
             .await
             .context("failed to open writer")?;
