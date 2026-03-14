@@ -110,7 +110,7 @@ impl RoutesBatcher {
                             as_path = EXCLUDED.as_path
                         RETURNING prefix
                     )
-                    SELECT pg_notify('bgp_update', prefix::TEXT)
+                    SELECT pg_notify('bgp_updates', prefix::TEXT)
                     FROM (SELECT DISTINCT prefix FROM upserted) AS changed;",
                     &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &as_path],
                 )
