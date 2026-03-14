@@ -9,16 +9,24 @@ services:
     depends_on:
       postgres:
         condition: service_started
-    command: ["-o", "db_url=postgres://postgres:postgres@postgres/", "-o", "log_level=info,ingest=debug"]
+    command: ["-o", "db_url=postgres://postgres:postgres@postgres/postgres", "-o", "log_level=info,ingest=debug"]
+    networks:
+      - default
   postgres:
     image: postgres:18
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    networks:
+      - default
     ports:
       - 127.0.0.1:5432:5432
     volumes:
       - postgres:/var/lib/postgresql
+
+networks:
+  default:
+    enable_ipv6: true
 
 volumes:
   postgres:
