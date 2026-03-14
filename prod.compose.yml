@@ -1,6 +1,9 @@
 services:
   ingest:
-    build: ./crates/ingest
+    build:
+      context: .
+      args:
+        BIN: ingest
     volumes:
       - ./local/ripe_cache:/app/local/cache
     depends_on:
