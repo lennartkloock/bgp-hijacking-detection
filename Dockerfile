@@ -9,6 +9,6 @@ RUN cargo build -p ${BIN} --release
 FROM debian:stable-slim
 ARG BIN
 RUN apt-get update && apt-get install -y ca-certificates
-COPY --from=build /build/target/release/${BIN} /app/${BIN}
+COPY --from=build /build/target/release/${BIN} /app/entrypoint
 WORKDIR /app
-ENTRYPOINT [ "/app/${BIN}" ]
+ENTRYPOINT [ "/app/entrypoint" ]
