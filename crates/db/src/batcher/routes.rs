@@ -5,9 +5,10 @@ use cidr::IpCidr;
 use fxhash::{FxBuildHasher, FxHashMap};
 use tokio_postgres::{binary_copy::BinaryCopyInWriter, types::Type};
 
-use crate::{DbPool, Route};
+use crate::{DbPool, MoasPrefix, Route};
 
-const BATCH_SIZE: usize = 10000;
+const COPY_BATCH_SIZE: usize = 10000;
+const BATCH_SIZE: usize = 1000;
 
 #[derive(Debug)]
 enum RouteOperation {
@@ -158,14 +159,14 @@ impl RouteInsertBatcher {
     pub fn new(db: DbPool) -> Self {
         Self {
             db,
-            batch: Vec::with_capacity(BATCH_SIZE),
+            batch: Vec::with_capacity(COPY_BATCH_SIZE),
         }
     }
 
     pub async fn insert(&mut self, route: Route) -> anyhow::Result<Option<u64>> {
         self.batch.push(route);
 
-        if self.batch.len() < BATCH_SIZE {
+        if self.batch.len() < COPY_BATCH_SIZE {
             return Ok(None);
         }
 
@@ -173,7 +174,7 @@ impl RouteInsertBatcher {
     }
 
     pub async fn finish(&mut self) -> anyhow::Result<u64> {
-        let mut batch = Vec::with_capacity(BATCH_SIZE);
+        let mut batch = Vec::with_capacity(COPY_BATCH_SIZE);
         std::mem::swap(&mut self.batch, &mut batch);
 
         let conn = self.db.get().await.context("failed to get connection")?;
@@ -214,6 +215,61 @@ impl RouteInsertBatcher {
             .context("failed to write batch to db")?;
 
         tracing::debug!(rows, "wrote route batch to db");
+
+        Ok(rows)
+    }
+}
+
+pub struct MoasRoutesFetcher {
+    db: DbPool,
+    prefixes: Vec<cidr::IpCidr>,
+}
+
+impl MoasRoutesFetcher {
+    pub fn new(db: DbPool) -> Self {
+        Self {
+            db,
+            prefixes: Vec::with_capacity(BATCH_SIZE),
+        }
+    }
+
+    pub async fn fetch(&mut self, prefix: cidr::IpCidr) -> anyhow::Result<Option<Vec<MoasPrefix>>> {
+        self.prefixes.push(prefix);
+
+        if self.prefixes.len() < BATCH_SIZE {
+            return Ok(None);
+        }
+
+        self.finish().await.map(Some)
+    }
+
+    pub async fn finish(&mut self) -> anyhow::Result<Vec<MoasPrefix>> {
+        let mut prefixes = Vec::with_capacity(BATCH_SIZE);
+        std::mem::swap(&mut self.prefixes, &mut prefixes);
+
+        let conn = self.db.get().await.context("failed to get connection")?;
+        let rows: Vec<_> = conn
+            .query(
+                "SELECT
+                prefix,
+                array_agg(DISTINCT origin) AS origins
+            FROM routes,
+                LATERAL UNNEST(origin_asn) AS origin
+            WHERE prefix = ANY($1::CIDR[])
+            GROUP BY prefix
+            HAVING count(DISTINCT origin_asn) > 1
+            ORDER BY count(DISTINCT origin) DESC;
+            ",
+                &[&prefixes],
+            )
+            .await
+            .context("failed to query moas prefixes")?
+            .into_iter()
+            .map(MoasPrefix::from_row)
+            .collect::<Result<_, _>>()
+            .context("failed to convert into moas prefixes")?;
+
+        tracing::debug!(rows = rows.len(), "fetched moas routes from db");
 
         Ok(rows)
     }
