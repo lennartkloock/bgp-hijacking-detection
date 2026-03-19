@@ -1,6 +1,6 @@
 services:
   ingest:
-    image: ghcr.io/lennartkloock/bgp-hijacking-detection-ingest
+    image: ghcr.io/lennartkloock/bgp-hijacking-detection/ingest
     build:
       context: .
       args:
@@ -14,7 +14,7 @@ services:
     networks:
       - default
   detection:
-    image: ghcr.io/lennartkloock/bgp-hijacking-detection-detection
+    image: ghcr.io/lennartkloock/bgp-hijacking-detection/detection
     build:
       context: .
       args:
