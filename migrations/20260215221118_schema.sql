@@ -31,3 +31,8 @@ CREATE TABLE events (
 
 CREATE INDEX ON events(prefix, timestamp DESC);
 CREATE INDEX ON events(origin_asn);
+
+CREATE TABLE moas (
+    prefix CIDR PRIMARY KEY,
+    origins BIGINT[] NOT NULL
+);
