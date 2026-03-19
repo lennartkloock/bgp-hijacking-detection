@@ -13,6 +13,7 @@ use crate::{
     ripe_ris::{self, archived::file_names::next_update_date},
 };
 
+#[tracing::instrument(level = "info", skip_all)]
 pub(crate) async fn seed(
     global: &Arc<Global>,
     ctx: &scuffle_context::Context,
