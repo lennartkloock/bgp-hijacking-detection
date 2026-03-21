@@ -6,7 +6,7 @@ use tokio_postgres::binary_copy::BinaryCopyInWriter;
 
 use crate::{DbPool, MoasPrefix};
 
-const COPY_BATCH_SIZE: usize = 10000;
+const BATCH_SIZE: usize = 100;
 
 pub struct MoasInsertBatcher {
     db: DbPool,
@@ -17,14 +17,14 @@ impl MoasInsertBatcher {
     pub fn new(db: DbPool) -> Self {
         Self {
             db,
-            batch: Vec::with_capacity(COPY_BATCH_SIZE),
+            batch: Vec::with_capacity(BATCH_SIZE),
         }
     }
 
     pub async fn insert(&mut self, moas: MoasPrefix) -> anyhow::Result<Option<u64>> {
         self.batch.push(moas);
 
-        if self.batch.len() < COPY_BATCH_SIZE {
+        if self.batch.len() < BATCH_SIZE {
             return Ok(None);
         }
 
@@ -35,7 +35,7 @@ impl MoasInsertBatcher {
         self.batch.reserve_exact(moases.len());
         self.batch.extend(moases);
 
-        if self.batch.len() < COPY_BATCH_SIZE {
+        if self.batch.len() < BATCH_SIZE {
             return Ok(None);
         }
 
@@ -43,7 +43,7 @@ impl MoasInsertBatcher {
     }
 
     pub async fn finish(&mut self) -> anyhow::Result<u64> {
-        let mut batch = Vec::with_capacity(COPY_BATCH_SIZE);
+        let mut batch = Vec::with_capacity(BATCH_SIZE);
         std::mem::swap(&mut self.batch, &mut batch);
 
         let conn = self.db.get().await.context("failed to get connection")?;

@@ -33,6 +33,7 @@ CREATE INDEX ON events(prefix, timestamp DESC);
 CREATE INDEX ON events(origin_asn);
 
 CREATE TABLE moas (
-    prefix CIDR PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    prefix CIDR,
     origins BIGINT[] NOT NULL
 );
