@@ -1,4 +1,7 @@
-use std::{sync::Arc, time::Instant};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use db::batcher::{EventInsertBatcher, RoutesBatcher};
 use scuffle_context::ContextFutExt;
@@ -26,8 +29,27 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
         {
             let ctx = ctx.clone();
             tokio::spawn(async move {
-                if let Err(e) = ripe_ris::live::watch_messages(ctx, tx).await {
-                    tracing::error!(err = ?e, "failed to watch RIS messages");
+                let mut tries = 0;
+                let mut last_try = Instant::now();
+
+                loop {
+                    if let Err(e) = ripe_ris::live::watch_messages(ctx.clone(), tx.clone()).await {
+                        tracing::error!(err = ?e, "failed to watch RIS messages");
+                    }
+
+                    if last_try.elapsed() < Duration::from_secs(60) {
+                        if tries >= 5 {
+                            tracing::error!("connection failed 5 times, terminating...");
+                            break;
+                        }
+                        tries += 1;
+                    } else {
+                        // Reset tries because this connection was alive longer than a minute
+                        tries = 0;
+                    }
+                    last_try = Instant::now();
+
+                    tracing::info!("connection closed, reconnecting...");
                 }
 
                 // Cancel the global handler when the connection is done
