@@ -1,4 +1,5 @@
 use anyhow::Context;
+use fxhash::{FxBuildHasher, FxHashMap};
 
 use crate::{DbPool, MoasPrefix};
 
@@ -6,30 +7,22 @@ const BATCH_SIZE: usize = 100;
 
 pub struct MoasInsertBatcher {
     db: DbPool,
-    batch: Vec<MoasPrefix>,
+    batch: FxHashMap<cidr::IpCidr, MoasPrefix>,
 }
 
 impl MoasInsertBatcher {
     pub fn new(db: DbPool) -> Self {
         Self {
             db,
-            batch: Vec::with_capacity(BATCH_SIZE),
+            batch: FxHashMap::with_capacity_and_hasher(BATCH_SIZE, FxBuildHasher::default()),
         }
     }
 
     pub async fn insert(&mut self, moas: MoasPrefix) -> anyhow::Result<Option<u64>> {
-        self.batch.push(moas);
-
-        if self.batch.len() < BATCH_SIZE {
-            return Ok(None);
-        }
-
-        self.finish().await.map(Some)
-    }
-
-    pub async fn extend(&mut self, moases: Vec<MoasPrefix>) -> anyhow::Result<Option<u64>> {
-        self.batch.reserve_exact(moases.len());
-        self.batch.extend(moases);
+        self.batch
+            .entry(moas.prefix)
+            .and_modify(|m| m.origins.extend(&moas.origins))
+            .or_insert(moas);
 
         if self.batch.len() < BATCH_SIZE {
             return Ok(None);
@@ -39,13 +32,13 @@ impl MoasInsertBatcher {
     }
 
     pub async fn finish(&mut self) -> anyhow::Result<u64> {
-        let mut batch = Vec::with_capacity(BATCH_SIZE);
+        let mut batch = FxHashMap::with_capacity_and_hasher(BATCH_SIZE, FxBuildHasher::default());
         std::mem::swap(&mut self.batch, &mut batch);
 
         let conn = self.db.get().await.context("failed to get connection")?;
 
         let (prefix, origins): (Vec<_>, Vec<&[i64]>) =
-            itertools::multiunzip(batch.iter().map(MoasPrefix::to_tuple));
+            itertools::multiunzip(batch.values().map(MoasPrefix::to_tuple));
 
         let origin_asn_text: Vec<_> = origins
             .into_iter()

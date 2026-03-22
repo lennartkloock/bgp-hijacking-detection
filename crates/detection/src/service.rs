@@ -30,10 +30,12 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
             };
 
             if let Some(moases) = fetcher.fetch(prefix).await? {
-                batcher
-                    .extend(moases)
-                    .await
-                    .context("failed to insert moas prefixes")?;
+                for moas in moases {
+                    batcher
+                        .insert(moas)
+                        .await
+                        .context("failed to insert moas prefixes")?;
+                }
             }
         }
 
