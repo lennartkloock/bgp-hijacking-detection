@@ -16,7 +16,7 @@ use crate::{
 
 pub(crate) async fn handle_message(
     _global: &Arc<Global>,
-    event_batcher: &mut EventInsertBatcher,
+    mut event_batcher: Option<&mut EventInsertBatcher>,
     route_batcher: &mut RoutesBatcher,
     message: RisLiveServerMessage,
 ) -> anyhow::Result<()> {
@@ -70,20 +70,22 @@ pub(crate) async fn handle_message(
                             let prefix = *prefix;
                             let peer_asn = peer_asn as i64;
 
-                            event_batcher
-                                .insert(NewEvent {
-                                    timestamp,
-                                    event_type: EventType::Announcement,
-                                    prefix,
-                                    origin_asn: Some(origin_asn.clone()),
-                                    peer_asn,
-                                    peer_ip: peer,
-                                    host: host.clone(),
-                                    next_hop: Some(announcement.next_hop.clone()),
-                                    as_path: Some(as_path.clone()),
-                                })
-                                .await
-                                .context("failed to insert event")?;
+                            if let Some(event_batcher) = event_batcher.as_mut() {
+                                event_batcher
+                                    .insert(NewEvent {
+                                        timestamp,
+                                        event_type: EventType::Announcement,
+                                        prefix,
+                                        origin_asn: Some(origin_asn.clone()),
+                                        peer_asn,
+                                        peer_ip: peer,
+                                        host: host.clone(),
+                                        next_hop: Some(announcement.next_hop.clone()),
+                                        as_path: Some(as_path.clone()),
+                                    })
+                                    .await
+                                    .context("failed to insert event")?;
+                            }
 
                             route_batcher
                                 .upsert(Route {
@@ -106,20 +108,22 @@ pub(crate) async fn handle_message(
             // Insert all withdrawals
             if let Some(withdrawals) = withdrawals {
                 for prefix in withdrawals {
-                    event_batcher
-                        .insert(NewEvent {
-                            timestamp,
-                            event_type: EventType::Withdrawal,
-                            prefix,
-                            origin_asn: None,
-                            peer_asn: peer_asn as i64,
-                            peer_ip: peer,
-                            host: host.clone(),
-                            next_hop: None,
-                            as_path: None,
-                        })
-                        .await
-                        .context("failed to insert event")?;
+                    if let Some(event_batcher) = event_batcher.as_mut() {
+                        event_batcher
+                            .insert(NewEvent {
+                                timestamp,
+                                event_type: EventType::Withdrawal,
+                                prefix,
+                                origin_asn: None,
+                                peer_asn: peer_asn as i64,
+                                peer_ip: peer,
+                                host: host.clone(),
+                                next_hop: None,
+                                as_path: None,
+                            })
+                            .await
+                            .context("failed to insert event")?;
+                    }
 
                     route_batcher
                         .delete(prefix, peer, host.clone())

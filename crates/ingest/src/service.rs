@@ -17,7 +17,13 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
     async fn run(self, global: Arc<Global>, ctx: scuffle_context::Context) -> anyhow::Result<()> {
         tracing::info!("starting ingest service");
 
-        seeding::seed(&global, &ctx, &global.config.seed_rrc).await?;
+        seeding::seed(
+            &global,
+            &ctx,
+            &global.config.seed_rrc,
+            global.config.insert_events,
+        )
+        .await?;
 
         if global.config.only_seed {
             scuffle_context::Handler::global().cancel();
@@ -57,16 +63,24 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
             });
         }
 
-        let mut event_batcher = EventInsertBatcher::new(global.db.clone()).await?;
+        let mut event_batcher = if global.config.insert_events {
+            Some(EventInsertBatcher::new(global.db.clone()).await?)
+        } else {
+            None
+        };
         let mut route_batcher = RoutesBatcher::new(global.db.clone());
 
         let mut counter = 0;
         let start = Instant::now();
 
         while let Some(Some(message)) = rx.recv().with_context(&ctx).await {
-            if let Err(e) =
-                handler::handle_message(&global, &mut event_batcher, &mut route_batcher, message)
-                    .await
+            if let Err(e) = handler::handle_message(
+                &global,
+                event_batcher.as_mut(),
+                &mut route_batcher,
+                message,
+            )
+            .await
             {
                 tracing::error!(err = ?e, "error handling message");
             }

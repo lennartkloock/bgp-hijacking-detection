@@ -10,7 +10,7 @@ services:
     depends_on:
       postgres:
         condition: service_started
-    command: ["-o", "db_url=postgres://postgres:postgres@postgres/postgres", "-o", "log_level=info,db=debug,ingest=debug"]
+    command: ["-o", "db_url=postgres://postgres:postgres@postgres/postgres", "-o", "insert_events=false", "-o", "log_level=info,db=debug,ingest=debug"]
     networks:
       - default
   detection:

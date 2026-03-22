@@ -18,6 +18,7 @@ pub(crate) async fn seed(
     global: &Arc<Global>,
     ctx: &scuffle_context::Context,
     rrc: &str,
+    insert_events: bool,
 ) -> anyhow::Result<()> {
     tracing::info!(path = ?global.config.cache_dir, "creating cache dir");
     tokio::fs::create_dir_all(&global.config.cache_dir)
@@ -29,7 +30,7 @@ pub(crate) async fn seed(
     if db::check_routes_empty(&global.db).await? {
         tracing::info!("the routes table is empty");
         let bview_time = process_bview(global, ctx, rrc).await?;
-        process_updates(global, ctx, bview_time, rrc).await?;
+        process_updates(global, ctx, bview_time, rrc, insert_events).await?;
     } else {
         let Some(updates_since) = db::last_event_timestamp(&global.db)
             .await?
@@ -37,7 +38,7 @@ pub(crate) async fn seed(
         else {
             anyhow::bail!("routes is not empty but events is");
         };
-        process_updates(global, ctx, updates_since, rrc).await?;
+        process_updates(global, ctx, updates_since, rrc, insert_events).await?;
     }
 
     tracing::info!("seeding finished");
@@ -99,6 +100,7 @@ async fn process_updates(
     ctx: &scuffle_context::Context,
     since: NaiveDateTime,
     rrc: &str,
+    insert_events: bool,
 ) -> anyhow::Result<()> {
     let host = format!("{rrc}.ripe.net");
 
@@ -137,7 +139,9 @@ async fn process_updates(
                 }
             };
 
-            event_batcher.insert(event.clone().into()).await?;
+            if insert_events {
+                event_batcher.insert(event.clone().into()).await?;
+            }
 
             match event.typ {
                 EventType::Announcement(announcement) => {
@@ -152,7 +156,9 @@ async fn process_updates(
         }
     }
 
-    event_batcher.finish().await?;
+    if insert_events {
+        event_batcher.finish().await?;
+    }
     route_batcher.finish().await?;
 
     Ok(())
