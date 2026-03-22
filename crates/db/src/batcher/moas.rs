@@ -1,8 +1,4 @@
-use std::pin::pin;
-
 use anyhow::Context;
-use postgres_types::Type;
-use tokio_postgres::binary_copy::BinaryCopyInWriter;
 
 use crate::{DbPool, MoasPrefix};
 
@@ -47,27 +43,36 @@ impl MoasInsertBatcher {
         std::mem::swap(&mut self.batch, &mut batch);
 
         let conn = self.db.get().await.context("failed to get connection")?;
-        let sink = conn
-            .copy_in("COPY moas (prefix, origins) FROM STDIN BINARY")
-            .await
-            .context("failed to open writer")?;
-        let mut writer = pin!(BinaryCopyInWriter::new(
-            sink,
-            &[Type::CIDR, Type::INT8_ARRAY]
-        ));
 
-        for moas in batch {
-            writer
-                .as_mut()
-                .write(&[&moas.prefix, &moas.origins])
-                .await
-                .context("failed to write row")?;
-        }
+        let (prefix, origins): (Vec<_>, Vec<&[i64]>) =
+            itertools::multiunzip(batch.iter().map(MoasPrefix::to_tuple));
 
-        let rows = writer
-            .finish()
+        let origin_asn_text: Vec<_> = origins
+            .into_iter()
+            .map(|origins| {
+                origins
+                    .iter()
+                    .map(|asn| asn.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            })
+            .collect();
+
+        let rows = conn
+            .execute(
+                "INSERT INTO moas (prefix, origins)
+            SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[]
+            FROM UNNEST($1::CIDR[], $2::TEXT[])
+            AS t(prefix, origin_asn_text)
+            ON CONFLICT (prefix) DO UPDATE SET
+                origins = ARRAY(
+                    SELECT DISTINCT UNNEST(moas.origins || EXCLUDED.origins)
+                ),
+                updated_at = NOW();",
+                &[&prefix, &origin_asn_text],
+            )
             .await
-            .context("failed to write batch to db")?;
+            .context("failed to upsert moas prefixes")?;
 
         tracing::debug!(rows, "wrote moas batch to db");
 

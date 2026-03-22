@@ -56,4 +56,8 @@ impl MoasPrefix {
             origins: row.try_get("origins")?,
         })
     }
+
+    pub fn to_tuple(&self) -> (cidr::IpCidr, &[i64]) {
+        (self.prefix, &self.origins)
+    }
 }
