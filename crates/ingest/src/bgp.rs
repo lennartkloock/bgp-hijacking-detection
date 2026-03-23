@@ -1,4 +1,4 @@
-use std::net::IpAddr;
+use std::{collections::HashSet, net::IpAddr};
 
 #[derive(Debug, Clone)]
 pub struct Event {
@@ -50,7 +50,7 @@ pub enum EventType {
 #[derive(Debug, Clone)]
 pub struct Announcement {
     pub prefix: cidr::IpCidr,
-    pub origin_asn: Vec<u32>,
+    pub origin_asn: HashSet<u32>,
     pub peer_asn: u32,
     pub peer_ip: IpAddr,
     pub host: String,

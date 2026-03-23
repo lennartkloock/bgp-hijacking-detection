@@ -194,16 +194,16 @@ impl RouteInsertBatcher {
             ]
         ));
 
-        for event in batch {
+        for route in batch {
             writer
                 .as_mut()
                 .write(&[
-                    &event.prefix,
-                    &event.origin_asn,
-                    &event.peer_asn,
-                    &event.peer_ip,
-                    &event.host,
-                    &event.as_path,
+                    &route.prefix,
+                    &route.origin_asn,
+                    &route.peer_asn,
+                    &route.peer_ip,
+                    &route.host,
+                    &route.as_path,
                 ])
                 .await
                 .context("failed to write row")?;
@@ -257,7 +257,7 @@ impl MoasRoutesFetcher {
                 LATERAL UNNEST(origin_asn) AS origin
             WHERE prefix = ANY($1::CIDR[])
             GROUP BY prefix
-            HAVING count(DISTINCT origin_asn) > 1
+            HAVING count(DISTINCT origin) > 1
             ORDER BY count(DISTINCT origin) DESC;
             ",
                 &[&prefixes],
