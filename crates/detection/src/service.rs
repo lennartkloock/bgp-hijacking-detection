@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::Context;
-use db::batcher::{MoasInsertBatcher, MoasRoutesFetcher};
+use db::batcher::MoasRoutesFetcher;
 use scuffle_context::ContextFutExt;
 
 use crate::global::Global;
@@ -13,7 +12,6 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
         tracing::info!("starting detection service");
 
         let mut fetcher = MoasRoutesFetcher::new(global.db.clone());
-        let mut batcher = MoasInsertBatcher::new(global.db.clone());
 
         tracing::info!(
             db_url = global.config.db_url,
@@ -31,10 +29,7 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
 
             if let Some(moases) = fetcher.fetch(prefix).await? {
                 for moas in moases {
-                    batcher
-                        .insert(moas)
-                        .await
-                        .context("failed to insert moas prefixes")?;
+                    db::upsert_moas(&global.db, moas).await?;
                 }
             }
         }

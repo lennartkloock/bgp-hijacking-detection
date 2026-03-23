@@ -98,3 +98,22 @@ pub async fn listen_for_bgp_updates(
 
     Ok(rx)
 }
+
+pub async fn upsert_moas(db: &DbPool, moas: MoasPrefix) -> anyhow::Result<()> {
+    let conn = db.get().await.context("failed to get connection")?;
+
+    conn.execute(
+        "INSERT INTO moas (prefix, origins)
+            VALUES ($1, $2)
+            ON CONFLICT (prefix) DO UPDATE SET
+                origins = ARRAY(
+                    SELECT DISTINCT UNNEST(moas.origins || EXCLUDED.origins)
+                ),
+                updated_at = NOW();",
+        &[&moas.prefix, &moas.origins],
+    )
+    .await
+    .context("failed to upsert moas prefix")?;
+
+    Ok(())
+}
