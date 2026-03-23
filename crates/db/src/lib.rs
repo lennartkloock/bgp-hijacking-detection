@@ -32,22 +32,13 @@ pub async fn connect(db_url: &str) -> anyhow::Result<DbPool> {
     Ok(db_pool)
 }
 
-pub async fn check_routes_empty(db: &DbPool) -> anyhow::Result<bool> {
-    let conn = db.get().await.context("failed to get db connection")?;
-    let row = conn
-        .query_one("SELECT NOT EXISTS (SELECT 1 FROM routes LIMIT 1);", &[])
-        .await
-        .context("failed to fetch count")?;
-    Ok(row.get(0))
-}
-
-pub async fn last_event_timestamp(
+pub async fn last_route_timestamp(
     db: &DbPool,
 ) -> anyhow::Result<Option<chrono::DateTime<chrono::Utc>>> {
     let conn = db.get().await.context("failed to get db connection")?;
     let row = conn
         .query_opt(
-            "SELECT timestamp FROM events ORDER BY timestamp DESC LIMIT 1;",
+            "SELECT updated_at FROM routes ORDER BY updated_at DESC LIMIT 1;",
             &[],
         )
         .await

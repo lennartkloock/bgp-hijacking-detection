@@ -108,7 +108,8 @@ impl RoutesBatcher {
                         ON CONFLICT (prefix, peer_ip, host) DO UPDATE SET
                             origin_asn = EXCLUDED.origin_asn,
                             peer_asn = EXCLUDED.peer_asn,
-                            as_path = EXCLUDED.as_path
+                            as_path = EXCLUDED.as_path,
+                            updated_at = NOW()
                         RETURNING prefix
                     )
                     SELECT pg_notify('bgp_updates', prefix::TEXT)

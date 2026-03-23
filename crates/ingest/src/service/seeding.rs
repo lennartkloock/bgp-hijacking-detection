@@ -27,18 +27,15 @@ pub(crate) async fn seed(
 
     tracing::info!("starting to seed db");
 
-    if db::check_routes_empty(&global.db).await? {
+    if let Some(updates_since) = db::last_route_timestamp(&global.db)
+        .await?
+        .map(|dt| dt.naive_utc())
+    {
+        process_updates(global, ctx, updates_since, rrc, insert_events).await?;
+    } else {
         tracing::info!("the routes table is empty");
         let bview_time = process_bview(global, ctx, rrc).await?;
         process_updates(global, ctx, bview_time, rrc, insert_events).await?;
-    } else {
-        let Some(updates_since) = db::last_event_timestamp(&global.db)
-            .await?
-            .map(|dt| dt.naive_utc())
-        else {
-            anyhow::bail!("routes is not empty but events is");
-        };
-        process_updates(global, ctx, updates_since, rrc, insert_events).await?;
     }
 
     tracing::info!("seeding finished");
