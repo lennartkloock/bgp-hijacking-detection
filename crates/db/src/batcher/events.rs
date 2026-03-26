@@ -47,7 +47,7 @@ impl EventInsertBatcher {
         std::mem::swap(&mut self.batch, &mut batch);
 
         let conn = self.db.get().await.context("failed to get connection")?;
-        let sink = conn.copy_in("COPY events (timestamp, event_type, prefix, origin_asn, peer_asn, peer_ip, host, next_hop, as_path) FROM STDIN BINARY")
+        let sink = conn.copy_in("COPY events (timestamp, event_type, prefix, origin_asn, peer_asn, peer_ip, host, next_hop) FROM STDIN BINARY")
             .await
             .context("failed to open writer")?;
         let mut writer = pin!(BinaryCopyInWriter::new(
@@ -61,7 +61,6 @@ impl EventInsertBatcher {
                 Type::INET,
                 Type::VARCHAR,
                 Type::INET_ARRAY,
-                Type::JSONB
             ]
         ));
 
@@ -77,7 +76,6 @@ impl EventInsertBatcher {
                     &event.peer_ip,
                     &event.host,
                     &event.next_hop,
-                    &event.as_path,
                 ])
                 .await
                 .context("failed to write row")?;

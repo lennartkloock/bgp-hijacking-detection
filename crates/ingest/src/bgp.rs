@@ -24,7 +24,6 @@ impl From<Event> for db::NewEvent {
                 peer_ip: announcement.peer_ip,
                 host: announcement.host,
                 next_hop: Some(announcement.next_hop),
-                as_path: Some(announcement.as_path),
             },
             EventType::Withdrawal(withdrawal) => Self {
                 timestamp: value.timestamp,
@@ -35,7 +34,6 @@ impl From<Event> for db::NewEvent {
                 peer_ip: withdrawal.peer_ip,
                 host: withdrawal.host,
                 next_hop: None,
-                as_path: None,
             },
         }
     }

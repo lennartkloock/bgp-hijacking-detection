@@ -17,7 +17,6 @@ pub struct NewEvent {
     pub peer_ip: IpAddr,
     pub host: String,
     pub next_hop: Option<Vec<IpAddr>>,
-    pub as_path: Option<serde_json::Value>,
 }
 
 #[derive(Debug)]

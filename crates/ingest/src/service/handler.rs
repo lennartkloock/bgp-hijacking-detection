@@ -81,7 +81,6 @@ pub(crate) async fn handle_message(
                                         peer_ip: peer,
                                         host: host.clone(),
                                         next_hop: Some(announcement.next_hop.clone()),
-                                        as_path: Some(as_path.clone()),
                                     })
                                     .await
                                     .context("failed to insert event")?;
@@ -119,7 +118,6 @@ pub(crate) async fn handle_message(
                                 peer_ip: peer,
                                 host: host.clone(),
                                 next_hop: None,
-                                as_path: None,
                             })
                             .await
                             .context("failed to insert event")?;

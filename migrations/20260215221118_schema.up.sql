@@ -28,7 +28,7 @@ CREATE TABLE events (
     peer_ip INET NOT NULL,
     host VARCHAR(20) NOT NULL, -- e.g. "rrc21"
     next_hop INET[], -- NULL for withdrawals
-    as_path JSONB -- NULL for withdrawals
+    -- as_path JSONB -- NULL for withdrawals
 );
 
 CREATE INDEX ON events(prefix, timestamp DESC);
