@@ -13,6 +13,7 @@ services:
     command: ["-o", "db_url=postgres://postgres:postgres@postgres/postgres", "-o", "log_level=info,db=debug,ingest=debug"]
     networks:
       - default
+    restart: unless-stopped
   detection:
     image: ghcr.io/lennartkloock/bgp-hijacking-detection/detection
     build:
@@ -25,6 +26,7 @@ services:
     command: ["-o", "db_url=postgres://postgres:postgres@postgres/postgres", "-o", "log_level=info,db=debug,detection=debug"]
     networks:
       - default
+    restart: unless-stopped
   postgres:
     image: postgres:18
     environment:
