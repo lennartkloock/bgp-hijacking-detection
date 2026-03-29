@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{net::SocketAddr, sync::Arc};
 
 use tracing_subscriber::{Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -10,6 +10,12 @@ pub struct Global {
 }
 
 impl scuffle_signal::SignalConfig for Global {}
+
+impl profiling::ProfilingConfig for Global {
+    fn bind(&self) -> Option<SocketAddr> {
+        self.config.pprof_bind
+    }
+}
 
 impl scuffle_bootstrap::global::Global for Global {
     type Config = config::Config;

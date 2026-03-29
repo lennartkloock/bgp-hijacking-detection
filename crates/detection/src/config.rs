@@ -1,8 +1,11 @@
+use std::net::SocketAddr;
+
 #[derive(Debug, serde::Deserialize)]
 #[serde(default)]
 pub struct Config {
     pub log_level: String,
     pub db_url: String,
+    pub pprof_bind: Option<SocketAddr>,
 }
 
 impl Default for Config {
@@ -10,6 +13,7 @@ impl Default for Config {
         Self {
             log_level: "info".to_string(),
             db_url: "postgres://postgres:postgres@localhost/postgres".to_string(),
+            pprof_bind: None,
         }
     }
 }

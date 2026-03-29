@@ -1,0 +1,16 @@
+[package]
+name = "profiling"
+version = "0.1.0"
+edition = "2024"
+authors = ["Lennart Kloock <lennart.kloock@protonmail.com>"]
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+tokio = "1"
+scuffle-context = "0.1"
+scuffle-bootstrap = "0.1"
+anyhow = "1"
+tracing = "0.1"
+jemalloc_pprof = { version = "0.8", features = ["symbolize"] }
+axum = "0.8"
