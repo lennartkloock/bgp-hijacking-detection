@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::{Duration, Instant}};
 
 use db::batcher::MoasRoutesFetcher;
 use scuffle_context::ContextFutExt;
@@ -20,6 +20,8 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
         let (client, conn) = db::connect_raw(&global.config.db_url).await?;
         let mut rx = db::listen_for_bgp_updates(&client, conn, ctx.clone()).await?;
 
+        let mut timer = Instant::now();
+
         while let Some(Some(notification)) = rx.recv().with_context(&ctx).await {
             let Ok(prefix) = notification.payload().parse().inspect_err(
                 |e| tracing::warn!(err = ?e, payload = notification.payload(), "failed to parse notification payload as prefix, skipping"),
@@ -31,6 +33,14 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
                 for moas in moases {
                     db::upsert_moas(&global.db, moas).await?;
                 }
+            }
+
+            if timer.elapsed() > Duration::from_secs(30) {
+                let channel_len = rx.len();
+                if channel_len > 0 {
+                    tracing::info!(n_messages = channel_len, "the receiver is behind");
+                }
+                timer = Instant::now();
             }
         }
 
