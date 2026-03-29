@@ -1,5 +1,9 @@
-use std::{sync::Arc, time::{Duration, Instant}};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
+use anyhow::Context;
 use db::batcher::MoasRoutesFetcher;
 use scuffle_context::ContextFutExt;
 
@@ -19,6 +23,7 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
         );
         let (client, conn) = db::connect_raw(&global.config.db_url).await?;
         let mut rx = db::listen_for_bgp_updates(&client, conn, ctx.clone()).await?;
+        let tx = db::upsert_moas_stream(global.db.clone(), ctx.clone());
 
         let mut timer = Instant::now();
 
@@ -31,7 +36,7 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
 
             if let Some(moases) = fetcher.fetch(prefix).await? {
                 for moas in moases {
-                    db::upsert_moas(&global.db, moas).await?;
+                    tx.send(moas).context("failed to send moas to db stream")?;
                 }
             }
 

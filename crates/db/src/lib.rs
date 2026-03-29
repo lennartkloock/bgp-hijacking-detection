@@ -108,3 +108,20 @@ pub async fn upsert_moas(db: &DbPool, moas: MoasPrefix) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+pub fn upsert_moas_stream(
+    db: DbPool,
+    ctx: scuffle_context::Context,
+) -> tokio::sync::mpsc::UnboundedSender<MoasPrefix> {
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+
+    tokio::spawn(async move {
+        while let Some(Some(moas)) = rx.recv().with_context(&ctx).await {
+            if let Err(e) = upsert_moas(&db, moas).await {
+                tracing::error!(err = ?e, "failed to upsert moas");
+            }
+        }
+    });
+
+    tx
+}

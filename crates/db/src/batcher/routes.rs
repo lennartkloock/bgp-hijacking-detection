@@ -253,13 +253,12 @@ impl MoasRoutesFetcher {
             .query(
                 "SELECT
                 prefix,
-                array_agg(DISTINCT origin) AS origins
+                array_agg(origin) AS origins
             FROM routes,
                 LATERAL UNNEST(origin_asn) AS origin
             WHERE prefix = ANY($1::CIDR[])
             GROUP BY prefix
-            HAVING count(DISTINCT origin) > 1
-            ORDER BY count(DISTINCT origin) DESC;
+            HAVING count(origin) > 1;
             ",
                 &[&prefixes],
             )
