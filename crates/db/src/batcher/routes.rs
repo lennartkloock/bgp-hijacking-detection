@@ -7,8 +7,8 @@ use tokio_postgres::{binary_copy::BinaryCopyInWriter, types::Type};
 
 use crate::{DbPool, MoasPrefix, Route};
 
-const COPY_BATCH_SIZE: usize = 10000;
-const BATCH_SIZE: usize = 1000;
+const BIG_BATCH_SIZE: usize = 10000;
+const SMALL_BATCH_SIZE: usize = 10000;
 
 #[derive(Debug)]
 enum RouteOperation {
@@ -25,7 +25,7 @@ impl RoutesBatcher {
     pub fn new(db: DbPool) -> Self {
         Self {
             db,
-            operations: FxHashMap::with_capacity_and_hasher(1000, FxBuildHasher::new()),
+            operations: FxHashMap::with_capacity_and_hasher(SMALL_BATCH_SIZE, FxBuildHasher::new()),
         }
     }
 
@@ -33,7 +33,7 @@ impl RoutesBatcher {
         let k = (route.prefix, route.peer_ip, route.host.clone());
         self.operations.insert(k, RouteOperation::Upsert(route));
 
-        if self.operations.len() < BATCH_SIZE {
+        if self.operations.len() < SMALL_BATCH_SIZE {
             return Ok(None);
         }
 
@@ -49,7 +49,7 @@ impl RoutesBatcher {
         self.operations
             .insert((prefix, peer_ip, host), RouteOperation::Delete);
 
-        if self.operations.len() < BATCH_SIZE {
+        if self.operations.len() < SMALL_BATCH_SIZE {
             return Ok(None);
         }
 
@@ -160,14 +160,14 @@ impl RouteInsertBatcher {
     pub fn new(db: DbPool) -> Self {
         Self {
             db,
-            batch: Vec::with_capacity(COPY_BATCH_SIZE),
+            batch: Vec::with_capacity(BIG_BATCH_SIZE),
         }
     }
 
     pub async fn insert(&mut self, route: Route) -> anyhow::Result<Option<u64>> {
         self.batch.push(route);
 
-        if self.batch.len() < COPY_BATCH_SIZE {
+        if self.batch.len() < BIG_BATCH_SIZE {
             return Ok(None);
         }
 
@@ -175,7 +175,7 @@ impl RouteInsertBatcher {
     }
 
     pub async fn finish(&mut self) -> anyhow::Result<u64> {
-        let mut batch = Vec::with_capacity(COPY_BATCH_SIZE);
+        let mut batch = Vec::with_capacity(BIG_BATCH_SIZE);
         std::mem::swap(&mut self.batch, &mut batch);
 
         let conn = self.db.get().await.context("failed to get connection")?;
@@ -230,14 +230,14 @@ impl MoasRoutesFetcher {
     pub fn new(db: DbPool) -> Self {
         Self {
             db,
-            prefixes: Vec::with_capacity(BATCH_SIZE),
+            prefixes: Vec::with_capacity(BIG_BATCH_SIZE),
         }
     }
 
     pub async fn fetch(&mut self, prefix: cidr::IpCidr) -> anyhow::Result<Option<Vec<MoasPrefix>>> {
         self.prefixes.push(prefix);
 
-        if self.prefixes.len() < BATCH_SIZE {
+        if self.prefixes.len() < BIG_BATCH_SIZE {
             return Ok(None);
         }
 
@@ -245,7 +245,7 @@ impl MoasRoutesFetcher {
     }
 
     pub async fn finish(&mut self) -> anyhow::Result<Vec<MoasPrefix>> {
-        let mut prefixes = Vec::with_capacity(BATCH_SIZE);
+        let mut prefixes = Vec::with_capacity(BIG_BATCH_SIZE);
         std::mem::swap(&mut self.prefixes, &mut prefixes);
 
         let conn = self.db.get().await.context("failed to get connection")?;
