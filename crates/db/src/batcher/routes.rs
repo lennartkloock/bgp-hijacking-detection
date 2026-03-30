@@ -70,9 +70,10 @@ impl RoutesBatcher {
 
         // Upserts
         {
-            let (prefix, origin_asn, peer_asn, peer_ip, host, as_path): (
+            let (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at): (
                 Vec<_>,
                 Vec<&[i64]>,
+                Vec<_>,
                 Vec<_>,
                 Vec<_>,
                 Vec<_>,
@@ -101,20 +102,20 @@ impl RoutesBatcher {
             rows += conn
                 .execute(
                     "WITH upserted AS (
-                        INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path)
-                        SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, as_path
-                        FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::VARCHAR[], $6::JSONB[])
-                        AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, as_path)
+                        INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at)
+                        SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, as_path, updated_at
+                        FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::VARCHAR[], $6::JSONB[], $7::TIMESTAMPTZ[])
+                        AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, as_path, updated_at)
                         ON CONFLICT (prefix, peer_ip, host) DO UPDATE SET
                             origin_asn = EXCLUDED.origin_asn,
                             peer_asn = EXCLUDED.peer_asn,
                             as_path = EXCLUDED.as_path,
-                            updated_at = NOW()
+                            updated_at = EXCLUDED.updated_at
                         RETURNING prefix
                     )
                     SELECT pg_notify('bgp_updates', prefix::TEXT)
                     FROM (SELECT DISTINCT prefix FROM upserted) AS changed;",
-                    &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &as_path],
+                    &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &as_path, &updated_at],
                 )
                 .await
                 .context("failed to upsert routes")?;
@@ -180,7 +181,7 @@ impl RouteInsertBatcher {
 
         let conn = self.db.get().await.context("failed to get connection")?;
         // We don't NOTIFY for each prefix here because we can only detect hijackings live.
-        let sink = conn.copy_in("COPY routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path) FROM STDIN BINARY")
+        let sink = conn.copy_in("COPY routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at) FROM STDIN BINARY")
             .await
             .context("failed to open writer")?;
         let mut writer = pin!(BinaryCopyInWriter::new(
@@ -191,7 +192,8 @@ impl RouteInsertBatcher {
                 Type::INT8,
                 Type::INET,
                 Type::VARCHAR,
-                Type::JSONB
+                Type::JSONB,
+                Type::TIMESTAMPTZ,
             ]
         ));
 
@@ -205,6 +207,7 @@ impl RouteInsertBatcher {
                     &route.peer_ip,
                     &route.host,
                     &route.as_path,
+                    &route.updated_at,
                 ])
                 .await
                 .context("failed to write row")?;

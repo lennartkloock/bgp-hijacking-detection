@@ -6,6 +6,7 @@ use crate::config;
 
 pub struct Global {
     pub db: db::DbPool,
+    pub clickhouse: clickhouse::Client,
     pub config: config::Config,
 }
 
@@ -33,6 +34,23 @@ impl scuffle_bootstrap::global::Global for Global {
 
         let db = db::connect(&config.db_url).await?;
 
-        Ok(Arc::new(Self { db, config }))
+        tracing::info!(
+            url = config.clickhouse.url,
+            db = config.clickhouse.db,
+            user = config.clickhouse.user,
+            "connecting to clickhouse"
+        );
+
+        let clickhouse = clickhouse::Client::default()
+            .with_url(&config.clickhouse.url)
+            .with_database(&config.clickhouse.db)
+            .with_user(&config.clickhouse.user)
+            .with_password(&config.clickhouse.password);
+
+        Ok(Arc::new(Self {
+            db,
+            clickhouse,
+            config,
+        }))
     }
 }

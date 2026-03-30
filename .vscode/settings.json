@@ -18,6 +18,43 @@
             "driver": "PostgreSQL",
             "connectString": "postgres://postgres:postgres@localhost/",
             "name": "localhost"
+        },
+        {
+            "server": "http://localhost",
+            "port": 8123,
+            "database": "default",
+            "useJWT": false,
+            "requestTimeout": 30000,
+            "enableTls": false,
+            "previewLimit": 50,
+            "password": "default",
+            "username": "default",
+            "driver": "ClickHouse",
+            "name": "localhost"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "test",
+            "database": "test",
+            "username": "postgres",
+            "password": "postgres"
+        },
+        {
+            "server": "http://localhost",
+            "port": 8123,
+            "database": "test",
+            "useJWT": false,
+            "requestTimeout": 30000,
+            "enableTls": false,
+            "previewLimit": 50,
+            "password": "default",
+            "username": "default",
+            "driver": "ClickHouse",
+            "name": "test"
         }
     ]
 }

@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Context;
 use db::{
-    EventType, NewEvent, Route,
-    batcher::{EventInsertBatcher, RoutesBatcher},
+    Event, EventType, Route, batcher::RoutesBatcher, clickhouse_inserter_commit, parse_rrc, to_ipv6,
 };
 
 use crate::{
@@ -16,7 +15,7 @@ use crate::{
 
 pub(crate) async fn handle_message(
     _global: &Arc<Global>,
-    mut event_batcher: Option<&mut EventInsertBatcher>,
+    event_inserter: &mut clickhouse::inserter::Inserter<Event>,
     route_batcher: &mut RoutesBatcher,
     message: RisLiveServerMessage,
 ) -> anyhow::Result<()> {
@@ -39,6 +38,8 @@ pub(crate) async fn handle_message(
             ..
         } => {
             let timestamp = timestamp_into_chrono(timestamp)?;
+            let peer_v6 = to_ipv6(peer);
+            let host_u8 = parse_rrc(&host).context("failed to parse rrc")?;
 
             // Insert all announcements
             if let Some(announcements) = announcements
@@ -59,41 +60,41 @@ pub(crate) async fn handle_message(
                         .collect();
                     let as_path = serde_json::Value::Array(as_path);
 
-                    let origin_asn: Vec<_> = origin_asn
-                        .to_vec()
-                        .into_iter()
-                        .map(|asn| asn as i64)
-                        .collect();
+                    let origin_asn = origin_asn.to_vec();
+                    let origin_asn_64: Vec<_> = origin_asn.iter().map(|asn| *asn as i64).collect();
 
                     for announcement in announcements.iter() {
-                        for prefix in announcement.prefixes.iter() {
-                            let prefix = *prefix;
-                            let peer_asn = peer_asn as i64;
+                        let next_hop_v6: Vec<_> = announcement
+                            .next_hop
+                            .iter()
+                            .map(|ip| to_ipv6(*ip))
+                            .collect();
 
-                            if let Some(event_batcher) = event_batcher.as_mut() {
-                                event_batcher
-                                    .insert(NewEvent {
-                                        timestamp,
-                                        event_type: EventType::Announcement,
-                                        prefix,
-                                        origin_asn: Some(origin_asn.clone()),
-                                        peer_asn,
-                                        peer_ip: peer,
-                                        host: host.clone(),
-                                        next_hop: Some(announcement.next_hop.clone()),
-                                    })
-                                    .await
-                                    .context("failed to insert event")?;
-                            }
+                        for prefix in announcement.prefixes.iter() {
+                            event_inserter
+                                .write(&Event {
+                                    timestamp,
+                                    event_type: EventType::Announcement,
+                                    prefix_addr: to_ipv6(prefix.first_address()),
+                                    prefix_len: prefix.network_length(),
+                                    origin_asn: origin_asn.clone(),
+                                    peer_asn,
+                                    peer_ip: peer_v6,
+                                    host: host_u8,
+                                    next_hop: next_hop_v6.clone(),
+                                })
+                                .await
+                                .context("failed to write event")?;
 
                             route_batcher
                                 .upsert(Route {
-                                    prefix,
-                                    origin_asn: origin_asn.clone(),
-                                    peer_asn,
+                                    prefix: *prefix,
+                                    origin_asn: origin_asn_64.clone(),
+                                    peer_asn: peer_asn as i64,
                                     peer_ip: peer,
                                     host: host.clone(),
                                     as_path: as_path.clone(),
+                                    updated_at: timestamp,
                                 })
                                 .await
                                 .context("failed to upsert route")?;
@@ -107,21 +108,20 @@ pub(crate) async fn handle_message(
             // Insert all withdrawals
             if let Some(withdrawals) = withdrawals {
                 for prefix in withdrawals {
-                    if let Some(event_batcher) = event_batcher.as_mut() {
-                        event_batcher
-                            .insert(NewEvent {
-                                timestamp,
-                                event_type: EventType::Withdrawal,
-                                prefix,
-                                origin_asn: None,
-                                peer_asn: peer_asn as i64,
-                                peer_ip: peer,
-                                host: host.clone(),
-                                next_hop: None,
-                            })
-                            .await
-                            .context("failed to insert event")?;
-                    }
+                    event_inserter
+                        .write(&Event {
+                            timestamp,
+                            event_type: EventType::Withdrawal,
+                            prefix_addr: to_ipv6(prefix.first_address()),
+                            prefix_len: prefix.network_length(),
+                            origin_asn: vec![],
+                            peer_asn,
+                            peer_ip: to_ipv6(peer),
+                            host: host_u8,
+                            next_hop: vec![],
+                        })
+                        .await
+                        .context("failed to write event")?;
 
                     route_batcher
                         .delete(prefix, peer, host.clone())
@@ -132,6 +132,8 @@ pub(crate) async fn handle_message(
         }
         _ => {}
     }
+
+    clickhouse_inserter_commit(event_inserter, false).await?;
 
     Ok(())
 }

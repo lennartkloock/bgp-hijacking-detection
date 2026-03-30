@@ -4,7 +4,8 @@ use anyhow::Context;
 use chrono::NaiveDateTime;
 use db::{
     self,
-    batcher::{EventInsertBatcher, RouteInsertBatcher, RoutesBatcher},
+    batcher::{RouteInsertBatcher, RoutesBatcher},
+    clickhouse_inserter_commit,
 };
 
 use crate::{
@@ -18,7 +19,6 @@ pub(crate) async fn seed(
     global: &Arc<Global>,
     ctx: &scuffle_context::Context,
     rrc: &str,
-    insert_events: bool,
 ) -> anyhow::Result<()> {
     tracing::info!(path = ?global.config.cache_dir, "creating cache dir");
     tokio::fs::create_dir_all(&global.config.cache_dir)
@@ -31,11 +31,11 @@ pub(crate) async fn seed(
         .await?
         .map(|dt| dt.naive_utc())
     {
-        process_updates(global, ctx, updates_since, rrc, insert_events).await?;
+        process_updates(global, ctx, updates_since, rrc).await?;
     } else {
         tracing::info!("the routes table is empty");
         let bview_time = process_bview(global, ctx, rrc).await?;
-        process_updates(global, ctx, bview_time, rrc, insert_events).await?;
+        process_updates(global, ctx, bview_time, rrc).await?;
     }
 
     tracing::info!("seeding finished");
@@ -74,9 +74,11 @@ async fn process_bview(
         match ripe_ris::archived::bgpkit_elem_into_event(elem, host.clone()) {
             Ok(Event {
                 typ: EventType::Announcement(announcement),
-                ..
+                timestamp,
             }) => {
-                route_batcher.insert(announcement.into()).await?;
+                route_batcher
+                    .insert(announcement.into_route(timestamp))
+                    .await?;
             }
             Ok(_) => {
                 // ignoring withdrawals
@@ -97,13 +99,15 @@ async fn process_updates(
     ctx: &scuffle_context::Context,
     since: NaiveDateTime,
     rrc: &str,
-    insert_events: bool,
 ) -> anyhow::Result<()> {
     let host = format!("{rrc}.ripe.net");
 
     tracing::info!(since = ?since, "starting to process updates");
 
-    let mut event_batcher = EventInsertBatcher::new(global.db.clone()).await?;
+    let mut event_inserter = global
+        .clickhouse
+        .inserter::<db::Event>("events")
+        .with_max_rows(100_000);
     let mut route_batcher = RoutesBatcher::new(global.db.clone());
 
     let mut current = since;
@@ -136,13 +140,13 @@ async fn process_updates(
                 }
             };
 
-            if insert_events {
-                event_batcher.insert(event.clone().into()).await?;
-            }
+            event_inserter.write(&event.to_db()?).await?;
 
             match event.typ {
                 EventType::Announcement(announcement) => {
-                    route_batcher.upsert(announcement.into()).await?;
+                    route_batcher
+                        .upsert(announcement.into_route(event.timestamp))
+                        .await?;
                 }
                 EventType::Withdrawal(withdrawal) => {
                     route_batcher
@@ -150,12 +154,13 @@ async fn process_updates(
                         .await?;
                 }
             }
+
+            clickhouse_inserter_commit(&mut event_inserter, false).await?;
         }
     }
 
-    if insert_events {
-        event_batcher.finish().await?;
-    }
+    clickhouse_inserter_commit(&mut event_inserter, true).await?;
+
     route_batcher.finish().await?;
 
     Ok(())

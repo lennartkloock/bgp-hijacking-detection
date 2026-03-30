@@ -1,40 +1,44 @@
 use std::{collections::HashSet, net::IpAddr};
 
+use anyhow::Context;
+use chrono::{DateTime, Utc};
+use db::{parse_rrc, to_ipv6};
+
 #[derive(Debug, Clone)]
 pub struct Event {
     pub timestamp: chrono::DateTime<chrono::Utc>,
     pub typ: EventType,
 }
 
-impl From<Event> for db::NewEvent {
-    fn from(value: Event) -> Self {
-        match value.typ {
-            EventType::Announcement(announcement) => Self {
-                timestamp: value.timestamp,
+impl Event {
+    pub fn to_db(&self) -> anyhow::Result<db::Event> {
+        match &self.typ {
+            EventType::Announcement(announcement) => Ok(db::Event {
+                timestamp: self.timestamp,
                 event_type: db::EventType::Announcement,
-                prefix: announcement.prefix,
-                origin_asn: Some(
-                    announcement
-                        .origin_asn
-                        .into_iter()
-                        .map(|asn| asn as i64)
-                        .collect(),
-                ),
-                peer_asn: announcement.peer_asn as i64,
-                peer_ip: announcement.peer_ip,
-                host: announcement.host,
-                next_hop: Some(announcement.next_hop),
-            },
-            EventType::Withdrawal(withdrawal) => Self {
-                timestamp: value.timestamp,
+                prefix_addr: to_ipv6(announcement.prefix.first_address()),
+                prefix_len: announcement.prefix.network_length(),
+                origin_asn: announcement.origin_asn.iter().copied().collect(),
+                peer_asn: announcement.peer_asn,
+                peer_ip: to_ipv6(announcement.peer_ip),
+                host: parse_rrc(&announcement.host).context("failed to parse host as rrc")?,
+                next_hop: announcement
+                    .next_hop
+                    .iter()
+                    .map(|ip| to_ipv6(*ip))
+                    .collect(),
+            }),
+            EventType::Withdrawal(withdrawal) => Ok(db::Event {
+                timestamp: self.timestamp,
                 event_type: db::EventType::Withdrawal,
-                prefix: withdrawal.prefix,
-                origin_asn: None,
-                peer_asn: withdrawal.peer_asn as i64,
-                peer_ip: withdrawal.peer_ip,
-                host: withdrawal.host,
-                next_hop: None,
-            },
+                prefix_addr: to_ipv6(withdrawal.prefix.first_address()),
+                prefix_len: withdrawal.prefix.network_length(),
+                origin_asn: vec![],
+                peer_asn: withdrawal.peer_asn,
+                peer_ip: to_ipv6(withdrawal.peer_ip),
+                host: parse_rrc(&withdrawal.host).context("failed to parse host as rrc")?,
+                next_hop: vec![],
+            }),
         }
     }
 }
@@ -56,15 +60,16 @@ pub struct Announcement {
     pub as_path: serde_json::Value,
 }
 
-impl From<Announcement> for db::Route {
-    fn from(value: Announcement) -> Self {
-        Self {
-            prefix: value.prefix,
-            origin_asn: value.origin_asn.into_iter().map(|asn| asn as i64).collect(),
-            peer_asn: value.peer_asn as i64,
-            peer_ip: value.peer_ip,
-            host: value.host,
-            as_path: value.as_path,
+impl Announcement {
+    pub fn into_route(self, timestamp: DateTime<Utc>) -> db::Route {
+        db::Route {
+            prefix: self.prefix,
+            origin_asn: self.origin_asn.into_iter().map(|asn| asn as i64).collect(),
+            peer_asn: self.peer_asn as i64,
+            peer_ip: self.peer_ip,
+            host: self.host,
+            as_path: self.as_path,
+            updated_at: timestamp,
         }
     }
 }

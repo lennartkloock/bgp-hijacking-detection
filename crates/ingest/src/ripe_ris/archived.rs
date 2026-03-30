@@ -39,6 +39,8 @@ pub(crate) async fn download_file(url: Url, cache_dir: &Path) -> anyhow::Result<
     let resp = resp.error_for_status().context("unexpected response")?;
 
     let total_size = resp.content_length().context("missing content length")?;
+    tracing::info!(file = ?file_path, total_size, "downloading file");
+
     let mut current = 0;
     let progress = indicatif::ProgressBar::new(total_size);
     progress.set_style(
@@ -48,8 +50,6 @@ pub(crate) async fn download_file(url: Url, cache_dir: &Path) -> anyhow::Result<
     );
 
     progress.set_message(file_path.display().to_string());
-
-    tracing::info!(file = ?file_path, total_size, "downloading file");
 
     let mut cache_file = File::create(&file_path)
         .await

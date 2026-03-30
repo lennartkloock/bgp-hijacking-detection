@@ -125,3 +125,21 @@ pub fn upsert_moas_stream(
 
     tx
 }
+
+pub async fn clickhouse_inserter_commit<T: clickhouse::Row>(
+    inserter: &mut clickhouse::inserter::Inserter<T>,
+    force: bool,
+) -> anyhow::Result<()> {
+    let n = if force {
+        inserter.force_commit().await
+    } else {
+        inserter.commit().await
+    }
+    .context("failed to insert events")?;
+
+    if n.rows > 0 {
+        tracing::debug!(rows = n.rows, "wrote events to clickhouse");
+    }
+
+    Ok(())
+}

@@ -27,3 +27,4 @@ bgpkit-parser = "0.15"
 reqwest = { version = "0.13", features = ["stream"] }
 indicatif = "0.18"
 db = { path = "../db" }
+clickhouse = { version = "0.14", features = ["inserter"] }
