@@ -107,7 +107,8 @@ async fn process_updates(
     let mut event_inserter = global
         .clickhouse
         .inserter::<db::Event>("events")
-        .with_max_rows(100_000);
+        .with_max_rows(5_000)
+        .with_max_bytes(500 * 1024 * 1024); // 500MiB
     let mut route_batcher = RoutesBatcher::new(global.db.clone());
 
     let mut current = since;
@@ -155,12 +156,11 @@ async fn process_updates(
                 }
             }
 
-            clickhouse_inserter_commit(&mut event_inserter, false).await?;
+            clickhouse_inserter_commit(&mut event_inserter).await?;
         }
     }
 
-    clickhouse_inserter_commit(&mut event_inserter, true).await?;
-
+    event_inserter.end().await?;
     route_batcher.finish().await?;
 
     Ok(())

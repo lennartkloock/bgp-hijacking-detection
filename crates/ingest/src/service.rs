@@ -3,7 +3,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use db::{batcher::RoutesBatcher, clickhouse_inserter_commit};
+use db::batcher::RoutesBatcher;
 use scuffle_context::ContextFutExt;
 
 use crate::{global::Global, ripe_ris};
@@ -65,7 +65,8 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
         let mut event_inserter = global
             .clickhouse
             .inserter::<db::Event>("events")
-            .with_max_rows(100_000);
+            .with_max_rows(5_000)
+            .with_max_bytes(500 * 1024 * 1024); // 500MiB
         let mut route_batcher = RoutesBatcher::new(global.db.clone());
 
         let mut counter = 0;
@@ -81,7 +82,7 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
             counter += 1;
         }
 
-        clickhouse_inserter_commit(&mut event_inserter, true).await?;
+        event_inserter.end().await?;
 
         let elapsed = start.elapsed().as_secs_f64();
         tracing::info!(

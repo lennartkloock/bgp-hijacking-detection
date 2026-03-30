@@ -133,7 +133,7 @@ pub(crate) async fn handle_message(
         _ => {}
     }
 
-    clickhouse_inserter_commit(event_inserter, false).await?;
+    clickhouse_inserter_commit(event_inserter).await?;
 
     Ok(())
 }
