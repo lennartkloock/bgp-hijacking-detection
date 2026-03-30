@@ -57,7 +57,6 @@ pub(crate) async fn watch_messages(
                 break;
             }
             Err(e) => {
-                tracing::error!(err = ?e, "error handling message, closing connection");
                 ws_stream
                     .close(Some(CloseFrame {
                         code: CloseCode::Error,

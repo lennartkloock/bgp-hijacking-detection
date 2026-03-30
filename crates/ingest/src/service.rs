@@ -3,8 +3,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-use db::batcher::RoutesBatcher;
+use db::{batcher::RoutesBatcher, clickhouse_inserter_commit};
 use scuffle_context::ContextFutExt;
+use tokio::sync::Mutex;
 
 use crate::{global::Global, ripe_ris};
 
@@ -29,7 +30,7 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
             return Ok(());
         }
 
-        let (tx, mut rx) = tokio::sync::mpsc::channel(10_000);
+        let (ris_tx, mut ris_rx) = tokio::sync::mpsc::channel(500_000);
 
         {
             let ctx = ctx.clone();
@@ -38,8 +39,8 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
                 let mut last_try = Instant::now();
 
                 while !ctx.is_done() {
-                    if let Err(e) = ripe_ris::live::watch_messages(ctx.clone(), tx.clone()).await {
-                        tracing::error!(err = ?e, "failed to watch RIS messages");
+                    if let Err(e) = ripe_ris::live::watch_messages(ctx.clone(), ris_tx.clone()).await {
+                        tracing::error!(err = %e, "failed to watch RIS messages");
                     }
 
                     if last_try.elapsed() < Duration::from_secs(60) {
@@ -62,35 +63,58 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
             });
         }
 
-        let mut event_inserter = global
-            .clickhouse
-            .inserter::<db::Event>("events")
-            .with_max_rows(5_000)
-            .with_max_bytes(500 * 1024 * 1024); // 500MiB
-        let mut route_batcher = RoutesBatcher::new(global.db.clone());
+        let event_inserter = Arc::new(Mutex::new(
+            global
+                .clickhouse
+                .inserter::<db::Event>("events")
+                .with_max_rows(10_000)
+                .with_max_bytes(100 * 1024 * 1024),
+        )); // 100MiB
+        let mut route_batcher = RoutesBatcher::new(global.db.clone(), ctx.clone());
 
-        let mut counter = 0;
-        let start = Instant::now();
+        {
+            let ctx = ctx.clone();
+            let event_inserter = event_inserter.clone();
+            tokio::spawn(async move {
+                let mut interval = tokio::time::interval(Duration::from_millis(500));
+                while !ctx.is_done() {
+                    interval.tick().await;
 
-        while let Some(Some(message)) = rx.recv().with_context(&ctx).await {
+                    if let Err(e) =
+                        clickhouse_inserter_commit(&mut *event_inserter.lock().await).await
+                    {
+                        tracing::error!(err = %e, "failed to insert events");
+                    }
+                }
+
+                match event_inserter.lock().await.force_commit().await {
+                    Ok(n) => {
+                        if n.rows > 0 {
+                            tracing::debug!(rows = n.rows, "wrote events to clickhouse");
+                        }
+                    }
+                    Err(e) => tracing::error!(err = %e, "failed to insert events"),
+                }
+            });
+        }
+
+        let mut timer = Instant::now();
+
+        while let Some(Some(message)) = ris_rx.recv().with_context(&ctx).await {
             if let Err(e) =
-                handler::handle_message(&global, &mut event_inserter, &mut route_batcher, message)
-                    .await
+                handler::handle_message(&global, &event_inserter, &mut route_batcher, message).await
             {
                 tracing::error!(err = ?e, "error handling message");
             }
-            counter += 1;
+
+            if timer.elapsed() > Duration::from_secs(30) {
+                let channel_len = ris_rx.len();
+                if channel_len > 10 {
+                    tracing::info!(n_messages = channel_len, "the RIPE RIS receiver is behind");
+                }
+                timer = Instant::now();
+            }
         }
-
-        event_inserter.end().await?;
-
-        let elapsed = start.elapsed().as_secs_f64();
-        tracing::info!(
-            "{} messages in {:.2}s ({:.2}/s)",
-            counter,
-            elapsed,
-            counter as f64 / elapsed
-        );
 
         Ok(())
     }

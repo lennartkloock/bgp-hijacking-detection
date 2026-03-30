@@ -107,9 +107,9 @@ async fn process_updates(
     let mut event_inserter = global
         .clickhouse
         .inserter::<db::Event>("events")
-        .with_max_rows(5_000)
-        .with_max_bytes(500 * 1024 * 1024); // 500MiB
-    let mut route_batcher = RoutesBatcher::new(global.db.clone());
+        .with_max_rows(10_000)
+        .with_max_bytes(100 * 1024 * 1024); // 100MiB
+    let mut route_batcher = RoutesBatcher::new(global.db.clone(), ctx.clone());
 
     let mut current = since;
 

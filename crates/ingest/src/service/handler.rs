@@ -4,6 +4,7 @@ use anyhow::Context;
 use db::{
     Event, EventType, Route, batcher::RoutesBatcher, clickhouse_inserter_commit, parse_rrc, to_ipv6,
 };
+use tokio::sync::Mutex;
 
 use crate::{
     global::Global,
@@ -15,7 +16,7 @@ use crate::{
 
 pub(crate) async fn handle_message(
     _global: &Arc<Global>,
-    event_inserter: &mut clickhouse::inserter::Inserter<Event>,
+    event_inserter: &Arc<Mutex<clickhouse::inserter::Inserter<Event>>>,
     route_batcher: &mut RoutesBatcher,
     message: RisLiveServerMessage,
 ) -> anyhow::Result<()> {
@@ -72,6 +73,8 @@ pub(crate) async fn handle_message(
 
                         for prefix in announcement.prefixes.iter() {
                             event_inserter
+                                .lock()
+                                .await
                                 .write(&Event {
                                     timestamp,
                                     event_type: EventType::Announcement,
@@ -109,6 +112,8 @@ pub(crate) async fn handle_message(
             if let Some(withdrawals) = withdrawals {
                 for prefix in withdrawals {
                     event_inserter
+                        .lock()
+                        .await
                         .write(&Event {
                             timestamp,
                             event_type: EventType::Withdrawal,
@@ -133,7 +138,7 @@ pub(crate) async fn handle_message(
         _ => {}
     }
 
-    clickhouse_inserter_commit(event_inserter).await?;
+    clickhouse_inserter_commit(&mut *event_inserter.lock().await).await?;
 
     Ok(())
 }
