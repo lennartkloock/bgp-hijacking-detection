@@ -28,6 +28,15 @@ pub(crate) struct RisLiveSubscriptionFilter {
     socket_options: Option<RisLiveSocketOptions>,
 }
 
+impl RisLiveSubscriptionFilter {
+    pub(crate) fn host(rrc: u8) -> Self {
+        Self {
+            host: Some(format!("rrc{rrc:02}")),
+            ..Default::default()
+        }
+    }
+}
+
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct RisLiveSocketOptions {

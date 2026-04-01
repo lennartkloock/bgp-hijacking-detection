@@ -42,8 +42,8 @@ impl scuffle_bootstrap::Service<Global> for DetectionSvc {
 
             if timer.elapsed() > Duration::from_secs(30) {
                 let channel_len = rx.len();
-                if channel_len > 0 {
-                    tracing::info!(n_messages = channel_len, "the receiver is behind");
+                if channel_len > 10 {
+                    tracing::warn!(n_messages = channel_len, "the receiver is behind");
                 }
                 timer = Instant::now();
             }

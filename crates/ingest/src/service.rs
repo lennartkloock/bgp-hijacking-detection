@@ -39,7 +39,13 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
                 let mut last_try = Instant::now();
 
                 while !ctx.is_done() {
-                    if let Err(e) = ripe_ris::live::watch_messages(ctx.clone(), ris_tx.clone()).await {
+                    if tries > 0 {
+                        tracing::info!("connection closed, reconnecting...");
+                    }
+
+                    if let Err(e) =
+                        ripe_ris::live::watch_messages(ctx.clone(), ris_tx.clone()).await
+                    {
                         tracing::error!(err = %e, "failed to watch RIS messages");
                     }
 
@@ -54,8 +60,6 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
                         tries = 0;
                     }
                     last_try = Instant::now();
-
-                    tracing::info!("connection closed, reconnecting...");
                 }
 
                 // Cancel the global handler when the connection is done
@@ -110,7 +114,7 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
             if timer.elapsed() > Duration::from_secs(30) {
                 let channel_len = ris_rx.len();
                 if channel_len > 10 {
-                    tracing::info!(n_messages = channel_len, "the RIPE RIS receiver is behind");
+                    tracing::warn!(n_messages = channel_len, "the RIPE RIS receiver is behind");
                 }
                 timer = Instant::now();
             }

@@ -1,10 +1,15 @@
-use std::{net::IpAddr, pin::pin, time::{Duration, Instant}};
+use std::{
+    net::IpAddr,
+    pin::pin,
+    time::{Duration, Instant},
+};
 
 use anyhow::Context;
 use cidr::IpCidr;
 use fxhash::{FxBuildHasher, FxHashMap};
 use scuffle_context::ContextFutExt;
 use tokio_postgres::{binary_copy::BinaryCopyInWriter, types::Type};
+use tracing::Instrument;
 
 use crate::{DbPool, MoasPrefix, Route};
 
@@ -19,10 +24,14 @@ enum RouteOperation {
 
 pub struct RoutesBatcher {
     operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
-    batches_tx: tokio::sync::mpsc::Sender<FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>>,
+    batches_tx:
+        tokio::sync::mpsc::Sender<FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>>,
 }
 
-async fn send_batch(db: &DbPool, operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>) -> anyhow::Result<u64> {
+async fn send_batch(
+    db: &DbPool,
+    operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
+) -> anyhow::Result<u64> {
     let timer = Instant::now();
 
     let conn = db
@@ -34,10 +43,9 @@ async fn send_batch(db: &DbPool, operations: FxHashMap<(cidr::IpCidr, IpAddr, St
 
     // Upserts
     {
-        let (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at): (
+        let (prefix, origin_asn, peer_asn, peer_ip, host, updated_at): (
             Vec<_>,
             Vec<&[i64]>,
-            Vec<_>,
             Vec<_>,
             Vec<_>,
             Vec<_>,
@@ -66,20 +74,19 @@ async fn send_batch(db: &DbPool, operations: FxHashMap<(cidr::IpCidr, IpAddr, St
         rows += conn
             .execute(
                 "WITH upserted AS (
-                    INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at)
-                    SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, as_path, updated_at
-                    FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::VARCHAR[], $6::JSONB[], $7::TIMESTAMPTZ[])
-                    AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, as_path, updated_at)
+                    INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, updated_at)
+                    SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, updated_at
+                    FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::VARCHAR[], $6::TIMESTAMPTZ[])
+                    AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, updated_at)
                     ON CONFLICT (prefix, peer_ip, host) DO UPDATE SET
                         origin_asn = EXCLUDED.origin_asn,
                         peer_asn = EXCLUDED.peer_asn,
-                        as_path = EXCLUDED.as_path,
                         updated_at = EXCLUDED.updated_at
                     RETURNING prefix
                 )
                 SELECT pg_notify('bgp_updates', prefix::TEXT)
                 FROM (SELECT DISTINCT prefix FROM upserted) AS changed;",
-                &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &as_path, &updated_at],
+                &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &updated_at],
             )
             .await
             .context("failed to upsert routes")?;
@@ -120,23 +127,29 @@ impl RoutesBatcher {
     pub fn new(db: DbPool, ctx: scuffle_context::Context) -> Self {
         let (tx, mut rx) = tokio::sync::mpsc::channel(1000);
 
-        tokio::spawn(async move {
-            let mut timer = Instant::now();
+        tokio::spawn(
+            async move {
+                let mut timer = Instant::now();
 
-            while let Some(Some(batch)) = rx.recv().with_context(&ctx).await {
-                if let Err(e) = send_batch(&db, batch).await {
-                    tracing::error!(err = %e, "failed to send batch to db");
-                }
-
-                if timer.elapsed() > Duration::from_secs(30) {
-                    let channel_len = rx.len();
-                    if channel_len > 0 {
-                        tracing::info!(n_messages = channel_len, "the route batching receiver is behind");
+                while let Some(Some(batch)) = rx.recv().with_context(&ctx).await {
+                    if let Err(e) = send_batch(&db, batch).await {
+                        tracing::error!(err = ?e, "failed to send batch to db");
                     }
-                    timer = Instant::now();
+
+                    if timer.elapsed() > Duration::from_secs(30) {
+                        let channel_len = rx.len();
+                        if channel_len > 10 {
+                            tracing::warn!(
+                                n_messages = channel_len,
+                                "the route batching receiver is behind"
+                            );
+                        }
+                        timer = Instant::now();
+                    }
                 }
             }
-        });
+            .in_current_span(),
+        );
 
         Self {
             operations: FxHashMap::with_capacity_and_hasher(SMALL_BATCH_SIZE, FxBuildHasher::new()),
@@ -174,7 +187,10 @@ impl RoutesBatcher {
     pub async fn finish(&mut self) -> anyhow::Result<()> {
         let mut operations = FxHashMap::with_capacity_and_hasher(1000, FxBuildHasher::new());
         std::mem::swap(&mut self.operations, &mut operations);
-        self.batches_tx.send(operations).await.context("failed to send batch")?;
+        self.batches_tx
+            .send(operations)
+            .await
+            .context("failed to send batch")?;
         Ok(())
     }
 }
@@ -208,7 +224,7 @@ impl RouteInsertBatcher {
 
         let conn = self.db.get().await.context("failed to get connection")?;
         // We don't NOTIFY for each prefix here because we can only detect hijackings live.
-        let sink = conn.copy_in("COPY routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at) FROM STDIN BINARY")
+        let sink = conn.copy_in("COPY routes (prefix, origin_asn, peer_asn, peer_ip, host, updated_at) FROM STDIN BINARY")
             .await
             .context("failed to open writer")?;
         let mut writer = pin!(BinaryCopyInWriter::new(
@@ -219,7 +235,6 @@ impl RouteInsertBatcher {
                 Type::INT8,
                 Type::INET,
                 Type::VARCHAR,
-                Type::JSONB,
                 Type::TIMESTAMPTZ,
             ]
         ));
@@ -233,7 +248,6 @@ impl RouteInsertBatcher {
                     &route.peer_asn,
                     &route.peer_ip,
                     &route.host,
-                    &route.as_path,
                     &route.updated_at,
                 ])
                 .await
@@ -283,12 +297,12 @@ impl MoasRoutesFetcher {
             .query(
                 "SELECT
                 prefix,
-                array_agg(origin) AS origins
+                array_agg(DISTINCT origin) AS origins
             FROM routes,
                 LATERAL UNNEST(origin_asn) AS origin
             WHERE prefix = ANY($1::CIDR[])
             GROUP BY prefix
-            HAVING count(origin) > 1;
+            HAVING count(DISTINCT origin) > 1;
             ",
                 &[&prefixes],
             )

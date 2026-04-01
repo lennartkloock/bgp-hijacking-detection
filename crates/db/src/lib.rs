@@ -78,6 +78,7 @@ pub async fn listen_for_bgp_updates(
                 }
             }
         }
+        scuffle_context::Handler::global().cancel();
     });
 
     tracing::info!("starting LISTEN");

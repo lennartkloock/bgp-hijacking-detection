@@ -57,7 +57,6 @@ pub struct Announcement {
     pub peer_ip: IpAddr,
     pub host: String,
     pub next_hop: Vec<IpAddr>,
-    pub as_path: serde_json::Value,
 }
 
 impl Announcement {
@@ -68,7 +67,6 @@ impl Announcement {
             peer_asn: self.peer_asn as i64,
             peer_ip: self.peer_ip,
             host: self.host,
-            as_path: self.as_path,
             updated_at: timestamp,
         }
     }

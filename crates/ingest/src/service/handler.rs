@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 use crate::{
     global::Global,
     ripe_ris::{
-        live::protocol::{AsPathElement, RisLiveServerMessage, RisMessageType},
+        live::protocol::{RisLiveServerMessage, RisMessageType},
         timestamp_into_chrono,
     },
 };
@@ -48,18 +48,18 @@ pub(crate) async fn handle_message(
             {
                 // ignore empty paths
                 if let Some(origin_asn) = path.last() {
-                    let as_path: Vec<_> = path
-                        .iter()
-                        .map(|pe| match pe {
-                            AsPathElement::Asn(asn) => serde_json::Value::from(*asn),
-                            AsPathElement::AsSet(set) => serde_json::Value::Array(
-                                set.iter()
-                                    .map(|asn| serde_json::Value::from(*asn))
-                                    .collect(),
-                            ),
-                        })
-                        .collect();
-                    let as_path = serde_json::Value::Array(as_path);
+                    // let as_path: Vec<_> = path
+                    //     .iter()
+                    //     .map(|pe| match pe {
+                    //         AsPathElement::Asn(asn) => serde_json::Value::from(*asn),
+                    //         AsPathElement::AsSet(set) => serde_json::Value::Array(
+                    //             set.iter()
+                    //                 .map(|asn| serde_json::Value::from(*asn))
+                    //                 .collect(),
+                    //         ),
+                    //     })
+                    //     .collect();
+                    // let as_path = serde_json::Value::Array(as_path);
 
                     let origin_asn = origin_asn.to_vec();
                     let origin_asn_64: Vec<_> = origin_asn.iter().map(|asn| *asn as i64).collect();
@@ -96,7 +96,6 @@ pub(crate) async fn handle_message(
                                     peer_asn: peer_asn as i64,
                                     peer_ip: peer,
                                     host: host.clone(),
-                                    as_path: as_path.clone(),
                                     updated_at: timestamp,
                                 })
                                 .await

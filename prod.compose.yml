@@ -27,7 +27,7 @@ services:
     networks:
       - default
     ports:
-    - 127.0.0.1:3000:3000
+    - 127.0.0.1:3001:3000
     restart: unless-stopped
   postgres:
     image: postgres:18
@@ -40,6 +40,7 @@ services:
       - 127.0.0.1:5432:5432
     volumes:
       - postgres:/var/lib/postgresql
+    # command: postgres -c log_min_duration_statement=100
   clickhouse:
     image: clickhouse:26.3
     environment:
@@ -55,6 +56,15 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+  grafana:
+    image: grafana/grafana:12.4
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - 127.0.0.1:3000:3000
+    volumes:
+      - grafana:/var/lib/grafana
 
 networks:
   default:
@@ -63,3 +73,4 @@ networks:
 volumes:
   postgres:
   clickhouse:
+  grafana:
