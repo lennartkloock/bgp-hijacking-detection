@@ -5,8 +5,8 @@ use chrono::NaiveDateTime;
 use db::{
     self,
     batcher::{RouteInsertBatcher, RoutesBatcher},
-    clickhouse_inserter_commit,
 };
+use tokio::sync::Mutex;
 
 use crate::{
     bgp::{Event, EventType},
@@ -104,12 +104,19 @@ async fn process_updates(
 
     tracing::info!(since = ?since, "starting to process updates");
 
-    let mut event_inserter = global
-        .clickhouse
-        .inserter::<db::Event>("events")
-        .with_max_rows(10_000)
-        .with_max_bytes(100 * 1024 * 1024); // 100MiB
+    let event_inserter = Arc::new(Mutex::new(
+        global
+            .clickhouse
+            .inserter::<db::Event>("events")
+            .with_max_rows(10_000)
+            .with_max_bytes(100 * 1024 * 1024), // 100MiB
+    ));
     let mut route_batcher = RoutesBatcher::new(global.db.clone(), ctx.clone());
+
+    tokio::spawn(db::clickhouse_inserter_task(
+        ctx.clone(),
+        event_inserter.clone(),
+    ));
 
     let mut current = since;
 
@@ -141,7 +148,7 @@ async fn process_updates(
                 }
             };
 
-            event_inserter.write(&event.to_db()?).await?;
+            event_inserter.lock().await.write(&event.to_db()?).await?;
 
             match event.typ {
                 EventType::Announcement(announcement) => {
@@ -155,12 +162,9 @@ async fn process_updates(
                         .await?;
                 }
             }
-
-            clickhouse_inserter_commit(&mut event_inserter).await?;
         }
     }
 
-    event_inserter.end().await?;
     route_batcher.finish().await?;
 
     Ok(())

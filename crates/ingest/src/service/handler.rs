@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use db::{
-    Event, EventType, Route, batcher::RoutesBatcher, clickhouse_inserter_commit, parse_rrc, to_ipv6,
-};
+use db::{Event, EventType, Route, batcher::RoutesBatcher, parse_rrc, to_ipv6};
 use tokio::sync::Mutex;
 
 use crate::{
@@ -136,8 +134,6 @@ pub(crate) async fn handle_message(
         }
         _ => {}
     }
-
-    clickhouse_inserter_commit(&mut *event_inserter.lock().await).await?;
 
     Ok(())
 }

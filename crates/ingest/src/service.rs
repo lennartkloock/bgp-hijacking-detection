@@ -3,7 +3,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use db::{batcher::RoutesBatcher, clickhouse_inserter_commit};
+use db::batcher::RoutesBatcher;
 use scuffle_context::ContextFutExt;
 use tokio::sync::Mutex;
 
@@ -76,31 +76,10 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
         )); // 100MiB
         let mut route_batcher = RoutesBatcher::new(global.db.clone(), ctx.clone());
 
-        {
-            let ctx = ctx.clone();
-            let event_inserter = event_inserter.clone();
-            tokio::spawn(async move {
-                let mut interval = tokio::time::interval(Duration::from_millis(500));
-                while !ctx.is_done() {
-                    interval.tick().await;
-
-                    if let Err(e) =
-                        clickhouse_inserter_commit(&mut *event_inserter.lock().await).await
-                    {
-                        tracing::error!(err = %e, "failed to insert events");
-                    }
-                }
-
-                match event_inserter.lock().await.force_commit().await {
-                    Ok(n) => {
-                        if n.rows > 0 {
-                            tracing::debug!(rows = n.rows, "wrote events to clickhouse");
-                        }
-                    }
-                    Err(e) => tracing::error!(err = %e, "failed to insert events"),
-                }
-            });
-        }
+        tokio::spawn(db::clickhouse_inserter_task(
+            ctx.clone(),
+            event_inserter.clone(),
+        ));
 
         let mut timer = Instant::now();
 
