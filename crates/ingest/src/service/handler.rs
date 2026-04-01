@@ -1,8 +1,11 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use db::{Event, EventType, Route, batcher::RoutesBatcher, parse_rrc, to_ipv6};
-use tokio::sync::Mutex;
+use db::{
+    Event, EventType, Route,
+    batcher::{EventBatcher, RoutesBatcher},
+    parse_rrc, to_ipv6,
+};
 
 use crate::{
     bgp,
@@ -15,7 +18,7 @@ use crate::{
 
 pub(crate) async fn handle_message(
     _global: &Arc<Global>,
-    event_inserter: &Arc<Mutex<clickhouse::inserter::Inserter<Event>>>,
+    event_batcher: &EventBatcher,
     route_batcher: &mut RoutesBatcher,
     message: RisLiveServerMessage,
 ) -> anyhow::Result<()> {
@@ -81,10 +84,8 @@ pub(crate) async fn handle_message(
                                 continue;
                             }
 
-                            event_inserter
-                                .lock()
-                                .await
-                                .write(&Event {
+                            event_batcher
+                                .insert(&Event {
                                     timestamp,
                                     event_type: EventType::Announcement,
                                     prefix_addr: to_ipv6(prefix.first_address()),
@@ -119,10 +120,8 @@ pub(crate) async fn handle_message(
             // Insert all withdrawals
             if let Some(withdrawals) = withdrawals {
                 for prefix in withdrawals {
-                    event_inserter
-                        .lock()
-                        .await
-                        .write(&Event {
+                    event_batcher
+                        .insert(&Event {
                             timestamp,
                             event_type: EventType::Withdrawal,
                             prefix_addr: to_ipv6(prefix.first_address()),

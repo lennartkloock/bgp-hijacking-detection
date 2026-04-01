@@ -8,6 +8,7 @@ use anyhow::Context;
 use cidr::IpCidr;
 use fxhash::{FxBuildHasher, FxHashMap};
 use scuffle_context::ContextFutExt;
+use tokio::task::JoinHandle;
 use tokio_postgres::{binary_copy::BinaryCopyInWriter, types::Type};
 use tracing::Instrument;
 
@@ -26,6 +27,7 @@ pub struct RoutesBatcher {
     operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
     batches_tx:
         tokio::sync::mpsc::Sender<FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>>,
+    task_handle: JoinHandle<()>,
 }
 
 async fn send_batch(
@@ -127,7 +129,7 @@ impl RoutesBatcher {
     pub fn new(db: DbPool, ctx: scuffle_context::Context) -> Self {
         let (tx, mut rx) = tokio::sync::mpsc::channel(1000);
 
-        tokio::spawn(
+        let handle = tokio::spawn(
             async move {
                 let mut timer = Instant::now();
 
@@ -154,6 +156,7 @@ impl RoutesBatcher {
         Self {
             operations: FxHashMap::with_capacity_and_hasher(SMALL_BATCH_SIZE, FxBuildHasher::new()),
             batches_tx: tx,
+            task_handle: handle,
         }
     }
 
@@ -165,7 +168,7 @@ impl RoutesBatcher {
             return Ok(());
         }
 
-        self.finish().await
+        self.batch().await
     }
 
     pub async fn delete(
@@ -181,10 +184,10 @@ impl RoutesBatcher {
             return Ok(());
         }
 
-        self.finish().await
+        self.batch().await
     }
 
-    pub async fn finish(&mut self) -> anyhow::Result<()> {
+    pub async fn batch(&mut self) -> anyhow::Result<()> {
         let mut operations = FxHashMap::with_capacity_and_hasher(1000, FxBuildHasher::new());
         std::mem::swap(&mut self.operations, &mut operations);
         self.batches_tx
@@ -192,6 +195,10 @@ impl RoutesBatcher {
             .await
             .context("failed to send batch")?;
         Ok(())
+    }
+
+    pub async fn end(self) -> anyhow::Result<()> {
+        self.task_handle.await.context("failed to await task")
     }
 }
 

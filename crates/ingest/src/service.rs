@@ -3,9 +3,8 @@ use std::{
     time::{Duration, Instant},
 };
 
-use db::batcher::RoutesBatcher;
+use db::batcher::{EventBatcher, RoutesBatcher};
 use scuffle_context::ContextFutExt;
-use tokio::sync::Mutex;
 
 use crate::{
     global::Global,
@@ -78,25 +77,14 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
             });
         }
 
-        let event_inserter = Arc::new(Mutex::new(
-            global
-                .clickhouse
-                .inserter::<db::Event>("events")
-                .with_max_rows(10_000)
-                .with_max_bytes(100 * 1024 * 1024),
-        )); // 100MiB
+        let event_batcher = EventBatcher::new(&global.clickhouse, ctx.clone());
         let mut route_batcher = RoutesBatcher::new(global.db.clone(), ctx.clone());
-
-        tokio::spawn(db::clickhouse_inserter_task(
-            ctx.clone(),
-            event_inserter.clone(),
-        ));
 
         let mut timer = Instant::now();
 
         while let Some(Some(message)) = ris_rx.recv().with_context(&ctx).await {
             if let Err(e) =
-                handler::handle_message(&global, &event_inserter, &mut route_batcher, message).await
+                handler::handle_message(&global, &event_batcher, &mut route_batcher, message).await
             {
                 tracing::error!(err = ?e, "error handling message");
             }
@@ -109,6 +97,9 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
                 timer = Instant::now();
             }
         }
+
+        event_batcher.end().await?;
+        route_batcher.end().await?;
 
         Ok(())
     }

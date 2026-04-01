@@ -1,10 +1,7 @@
-use std::{sync::Arc, time::Duration};
-
 use anyhow::Context;
 use bb8_postgres::PostgresConnectionManager;
 use futures_util::StreamExt;
 use scuffle_context::ContextFutExt;
-use tokio::sync::Mutex;
 use tokio_postgres::{AsyncMessage, NoTls};
 
 pub mod batcher;
@@ -128,40 +125,4 @@ pub fn upsert_moas_stream(
     });
 
     tx
-}
-
-pub async fn clickhouse_inserter_task<T: clickhouse::Row>(
-    ctx: scuffle_context::Context,
-    inserter: Arc<Mutex<clickhouse::inserter::Inserter<T>>>,
-) {
-    let mut interval = tokio::time::interval(Duration::from_millis(500));
-    while !ctx.is_done() {
-        interval.tick().await;
-
-        match inserter
-            .lock()
-            .await
-            .commit()
-            .await
-            .context("failed to insert events")
-        {
-            Ok(n) if n.rows > 0 => {
-                tracing::debug!(rows = n.rows, "wrote events to clickhouse");
-            }
-            Ok(_) => {}
-            Err(e) => tracing::error!(err = ?e, "failed to insert events"),
-        }
-    }
-
-    if let Some(inserter) = Arc::into_inner(inserter) {
-        match inserter.into_inner().end().await {
-            Ok(n) if n.rows > 0 => {
-                tracing::debug!(rows = n.rows, "wrote events to clickhouse");
-            }
-            Ok(_) => {}
-            Err(e) => tracing::error!(err = ?e, "failed to insert events"),
-        }
-    } else {
-        tracing::error!("failed to get ownership of inserter");
-    };
 }
