@@ -2,6 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
 use clickhouse::inserter::Inserter;
+use scuffle_context::ContextFutExt;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::Instrument;
 
@@ -10,6 +11,7 @@ use crate::Event;
 pub struct EventBatcher {
     inserter: Arc<Mutex<Inserter<Event>>>,
     task_handle: JoinHandle<()>,
+    task_handler: scuffle_context::Handler,
 }
 
 async fn clickhouse_inserter_task<T: clickhouse::Row>(
@@ -19,8 +21,6 @@ async fn clickhouse_inserter_task<T: clickhouse::Row>(
     let mut interval = tokio::time::interval(Duration::from_millis(500));
 
     while !ctx.is_done() {
-        interval.tick().await;
-
         match inserter
             .lock()
             .await
@@ -34,6 +34,8 @@ async fn clickhouse_inserter_task<T: clickhouse::Row>(
             Ok(_) => {}
             Err(e) => tracing::error!(err = ?e, "failed to insert events"),
         }
+
+        interval.tick().with_context(&ctx).await;
     }
 }
 
@@ -46,12 +48,14 @@ impl EventBatcher {
                 .with_max_bytes(100 * 1024 * 1024), // 100MiB
         ));
 
+        let (ctx, handler) = ctx.new_child();
         let task_handle =
             tokio::spawn(clickhouse_inserter_task(ctx, inserter.clone()).in_current_span());
 
         Self {
             inserter,
             task_handle,
+            task_handler: handler,
         }
     }
 
@@ -65,6 +69,7 @@ impl EventBatcher {
     }
 
     pub async fn end(self) -> anyhow::Result<()> {
+        self.task_handler.cancel();
         self.task_handle.await.context("failed to await task")?;
 
         let n = Arc::into_inner(self.inserter)
