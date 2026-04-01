@@ -71,17 +71,18 @@ async fn process_bview(
             break;
         }
 
-        match ripe_ris::archived::bgpkit_elem_into_event(elem, host.clone()) {
-            Ok(Event {
+        match ripe_ris::archived::bgpkit_elem_into_event(elem, host.clone()).map(|e| e.normalize())
+        {
+            Ok(Some(Event {
                 typ: EventType::Announcement(announcement),
                 timestamp,
-            }) => {
+            })) => {
                 route_batcher
                     .insert(announcement.into_route(timestamp))
                     .await?;
             }
             Ok(_) => {
-                // ignoring withdrawals
+                // ignore invalid events and withdrawals
             }
             Err(e) => {
                 tracing::warn!(err = ?e, "failed to parse event");
@@ -140,8 +141,11 @@ async fn process_updates(
                 break;
             }
 
-            let event = match ripe_ris::archived::bgpkit_elem_into_event(elem, host.clone()) {
-                Ok(event) => event,
+            let event = match ripe_ris::archived::bgpkit_elem_into_event(elem, host.clone())
+                .map(|e| e.normalize())
+            {
+                Ok(Some(event)) => event,
+                Ok(None) => continue,
                 Err(e) => {
                     tracing::warn!(err = ?e, "failed to parse route");
                     continue;

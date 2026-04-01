@@ -12,6 +12,28 @@ pub struct Event {
 }
 
 impl Event {
+    pub fn normalize(mut self) -> Option<Self> {
+        match &mut self.typ {
+            EventType::Announcement(announcement) => {
+                if is_default_route(announcement.prefix) {
+                    return None;
+                }
+
+                announcement.origin_asn.retain(|asn| !is_private_asn(*asn));
+                if announcement.origin_asn.is_empty() {
+                    return None;
+                }
+            }
+            EventType::Withdrawal(withdrawal) => {
+                if is_default_route(withdrawal.prefix) {
+                    return None;
+                }
+            }
+        }
+
+        Some(self)
+    }
+
     pub fn to_db(&self) -> anyhow::Result<db::Event> {
         match &self.typ {
             EventType::Announcement(announcement) => Ok(db::Event {
