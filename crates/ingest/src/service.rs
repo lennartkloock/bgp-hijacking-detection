@@ -7,7 +7,10 @@ use db::batcher::RoutesBatcher;
 use scuffle_context::ContextFutExt;
 use tokio::sync::Mutex;
 
-use crate::{global::Global, ripe_ris};
+use crate::{
+    global::Global,
+    ripe_ris::{self, live::protocol::RisLiveSubscriptionFilter},
+};
 
 mod handler;
 mod seeding;
@@ -34,6 +37,7 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
 
         {
             let ctx = ctx.clone();
+            let rrc_filter = global.config.rrc_filter;
             tokio::spawn(async move {
                 let mut tries = 0;
                 let mut last_try = Instant::now();
@@ -43,8 +47,15 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
                         tracing::info!("connection closed, reconnecting...");
                     }
 
+                    let ris_filter = if let Some(rrc) = rrc_filter {
+                        RisLiveSubscriptionFilter::host(rrc)
+                    } else {
+                        RisLiveSubscriptionFilter::default()
+                    };
+
                     if let Err(e) =
-                        ripe_ris::live::watch_messages(ctx.clone(), ris_tx.clone()).await
+                        ripe_ris::live::watch_messages(ctx.clone(), ris_tx.clone(), ris_filter)
+                            .await
                     {
                         tracing::error!(err = %e, "failed to watch RIS messages");
                     }

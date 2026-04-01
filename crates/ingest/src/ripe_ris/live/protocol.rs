@@ -17,15 +17,15 @@ pub(crate) enum RisLiveClientMessage {
 #[derive(Debug, Default, Clone, serde::Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct RisLiveSubscriptionFilter {
-    host: Option<String>,
+    pub host: Option<String>,
     #[serde(rename = "type")]
-    typ: Option<String>,
-    require: Option<String>,
-    peer: Option<String>,
-    prefix: Option<Vec<cidr::IpCidr>>,
-    more_specific: Option<bool>,
-    less_specific: Option<bool>,
-    socket_options: Option<RisLiveSocketOptions>,
+    pub typ: Option<String>,
+    pub require: Option<String>,
+    pub peer: Option<String>,
+    pub prefix: Option<Vec<cidr::IpCidr>>,
+    pub more_specific: Option<bool>,
+    pub less_specific: Option<bool>,
+    pub socket_options: Option<RisLiveSocketOptions>,
 }
 
 impl RisLiveSubscriptionFilter {

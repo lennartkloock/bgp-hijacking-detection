@@ -38,6 +38,7 @@ pub(crate) enum Error {
 pub(crate) async fn watch_messages(
     ctx: scuffle_context::Context,
     tx: tokio::sync::mpsc::Sender<protocol::RisLiveServerMessage>,
+    filter: RisLiveSubscriptionFilter,
 ) -> Result<(), Error> {
     tracing::info!(url = RIS_LIVE_URL, "connecting");
     let (mut ws_stream, _) = tokio_tungstenite::connect_async(RIS_LIVE_URL).await?;
@@ -45,7 +46,7 @@ pub(crate) async fn watch_messages(
     let peer = ws_stream.get_ref().get_ref().peer_addr()?;
     tracing::info!(remote_addr = ?peer, "successfully connected");
 
-    let message = RisLiveClientMessage::RisSubscribe(RisLiveSubscriptionFilter::default());
+    let message = RisLiveClientMessage::RisSubscribe(filter);
     tracing::debug!(message = ?message, "sending subscribe message");
     let message = serde_json::to_string(&message)?.into();
     ws_stream.send(tungstenite::Message::Text(message)).await?;

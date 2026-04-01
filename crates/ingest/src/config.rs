@@ -9,6 +9,7 @@ pub struct Config {
     pub only_seed: bool,
     pub seed_rrc: String,
     pub cache_dir: PathBuf,
+    pub rrc_filter: Option<u8>,
 }
 
 impl Default for Config {
@@ -20,6 +21,7 @@ impl Default for Config {
             only_seed: false,
             seed_rrc: "rrc12".to_string(),
             cache_dir: PathBuf::from_str("local").unwrap().join("cache"),
+            rrc_filter: None,
         }
     }
 }
