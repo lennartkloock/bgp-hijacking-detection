@@ -5,6 +5,7 @@ use db::{Event, EventType, Route, batcher::RoutesBatcher, parse_rrc, to_ipv6};
 use tokio::sync::Mutex;
 
 use crate::{
+    bgp,
     global::Global,
     ripe_ris::{
         live::protocol::{RisLiveServerMessage, RisMessageType},
@@ -59,7 +60,13 @@ pub(crate) async fn handle_message(
                     //     .collect();
                     // let as_path = serde_json::Value::Array(as_path);
 
-                    let origin_asn = origin_asn.to_vec();
+                    let mut origin_asn = origin_asn.to_vec();
+
+                    origin_asn.retain(|asn| !bgp::is_private_asn(*asn));
+                    if origin_asn.is_empty() {
+                        return Ok(());
+                    }
+
                     let origin_asn_64: Vec<_> = origin_asn.iter().map(|asn| *asn as i64).collect();
 
                     for announcement in announcements.iter() {
@@ -70,6 +77,10 @@ pub(crate) async fn handle_message(
                             .collect();
 
                         for prefix in announcement.prefixes.iter() {
+                            if bgp::is_default_route(*prefix) {
+                                continue;
+                            }
+
                             event_inserter
                                 .lock()
                                 .await

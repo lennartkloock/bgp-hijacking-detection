@@ -2,6 +2,7 @@ use std::{collections::HashSet, net::IpAddr};
 
 use anyhow::Context;
 use chrono::{DateTime, Utc};
+use cidr::IpCidr;
 use db::{parse_rrc, to_ipv6};
 
 #[derive(Debug, Clone)]
@@ -78,4 +79,15 @@ pub struct Withdrawal {
     pub peer_asn: u32,
     pub peer_ip: IpAddr,
     pub host: String,
+}
+
+pub fn is_default_route(prefix: IpCidr) -> bool {
+    prefix.network_length() == 0
+}
+
+pub fn is_private_asn(asn: u32) -> bool {
+    (64512..=65534).contains(&asn) || // RFC6996
+        (4200000000..=4294967294).contains(&asn) // RFC6996
+            || asn == 4294967295 // RFC7300
+            || asn == 0 // RFC7607
 }
