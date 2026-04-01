@@ -17,19 +17,6 @@ use crate::{DbPool, MoasPrefix, Route};
 const BIG_BATCH_SIZE: usize = 10_000;
 const SMALL_BATCH_SIZE: usize = 2_000;
 
-#[derive(Debug)]
-enum RouteOperation {
-    Upsert(Route),
-    Delete,
-}
-
-pub struct RoutesBatcher {
-    operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
-    batches_tx:
-        tokio::sync::mpsc::Sender<FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>>,
-    task_handle: JoinHandle<()>,
-}
-
 async fn send_batch(
     db: &DbPool,
     operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
@@ -125,10 +112,25 @@ async fn send_batch(
     Ok(rows)
 }
 
+#[derive(Debug)]
+enum RouteOperation {
+    Upsert(Route),
+    Delete,
+}
+
+pub struct RoutesBatcher {
+    operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
+    batches_tx:
+        tokio::sync::mpsc::Sender<FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>>,
+    task_handle: JoinHandle<()>,
+    task_handler: scuffle_context::Handler,
+}
+
 impl RoutesBatcher {
     pub fn new(db: DbPool, ctx: scuffle_context::Context) -> Self {
         let (tx, mut rx) = tokio::sync::mpsc::channel(1000);
 
+        let (ctx, task_handler) = ctx.new_child();
         let handle = tokio::spawn(
             async move {
                 let mut timer = Instant::now();
@@ -157,6 +159,7 @@ impl RoutesBatcher {
             operations: FxHashMap::with_capacity_and_hasher(SMALL_BATCH_SIZE, FxBuildHasher::new()),
             batches_tx: tx,
             task_handle: handle,
+            task_handler,
         }
     }
 
@@ -198,6 +201,7 @@ impl RoutesBatcher {
     }
 
     pub async fn end(self) -> anyhow::Result<()> {
+        self.task_handler.cancel();
         self.task_handle.await.context("failed to await task")
     }
 }

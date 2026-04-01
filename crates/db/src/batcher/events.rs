@@ -80,7 +80,7 @@ impl EventBatcher {
             .context("failed to end inserter")?;
 
         if n.rows > 0 {
-            tracing::info!(rows = n.rows, "wrote events to clickhouse");
+            tracing::debug!(rows = n.rows, "wrote events to clickhouse");
         }
 
         Ok(())
