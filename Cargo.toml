@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/db", "crates/detection", "crates/events_migrator", "crates/ingest", "crates/profiling"]
+members = ["crates/db", "crates/detection", "crates/moas_analysis", "crates/events_migrator", "crates/ingest", "crates/profiling"]
 
 # [profile.release]
 # debug = true

@@ -49,7 +49,7 @@ services:
       - default
     ports:
       - 127.0.0.1:8123:8123
-      # - 127.0.0.1:9000:9000 native port
+      - 127.0.0.1:9000:9000
     volumes:
       - clickhouse:/var/lib/clickhouse
     ulimits:
