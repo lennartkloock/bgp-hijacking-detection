@@ -65,6 +65,7 @@ pub(crate) async fn handle_message(
 
                     let mut origin_asn = origin_asn.to_vec();
 
+                    origin_asn.dedup();
                     origin_asn.retain(|asn| !bgp::is_private_asn(*asn));
                     if origin_asn.is_empty() {
                         return Ok(());
