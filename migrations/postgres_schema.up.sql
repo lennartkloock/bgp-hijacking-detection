@@ -13,5 +13,7 @@ CREATE TABLE routes (
 CREATE TABLE moas (
     prefix CIDR PRIMARY KEY,
     origins BIGINT[] NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL,
+    https_hosts INET[] DEFAULT ARRAY[]::INET[],
+    last_scanned_at TIMESTAMPTZ DEFAULT NULL
 );
