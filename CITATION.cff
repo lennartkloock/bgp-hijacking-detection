@@ -5,10 +5,12 @@ authors:
   - given-names: Lennart
     family-names: Kloock
     email: lennart.kloock@protonmail.com
+    orcid: https://orcid.org/0009-0000-5874-2144
 repository-code: 'https://github.com/lennartkloock/bgp-hijacking-detection'
 keywords:
   - BGP
   - BGP Hijacking Detection
 license: MIT OR Apache-2.0
+type: software
 version: 0.1.0
 date-released: 2026-04-10

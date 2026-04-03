@@ -147,3 +147,12 @@ shodan-website:
   url:
     value: https://www.shodan.io/
     date: 2026-01-06
+zmap:
+  type: Web
+  title: zmap
+  author: ["Durumeric, Zakir", "Wustrow, Eric", "Halderman, J. Alex"]
+  date: 2013
+  url: https://github.com/zmap/zmap
+  parent:
+    type: Proceedings
+    title: 22nd USENIX Security Symposium
