@@ -104,7 +104,7 @@ async fn process_updates(
 
     tracing::info!(since = ?since, "starting to process updates");
 
-    let event_batcher = EventBatcher::new(&global.clickhouse, ctx.clone());
+    let event_batcher = EventBatcher::new(global.clickhouse.clone(), ctx.clone());
     let mut route_batcher = RoutesBatcher::new(global.db.clone(), ctx.clone());
 
     let mut current = since;
@@ -140,7 +140,7 @@ async fn process_updates(
                 }
             };
 
-            event_batcher.insert(&event.to_db()?).await?;
+            event_batcher.insert(event.to_db()?).await?;
 
             match event.typ {
                 EventType::Announcement(announcement) => {

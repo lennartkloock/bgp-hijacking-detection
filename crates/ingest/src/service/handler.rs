@@ -86,7 +86,7 @@ pub(crate) async fn handle_message(
                             }
 
                             event_batcher
-                                .insert(&Event {
+                                .insert(Event {
                                     timestamp,
                                     event_type: EventType::Announcement,
                                     prefix_addr: to_ipv6(prefix.first_address()),
@@ -122,7 +122,7 @@ pub(crate) async fn handle_message(
             if let Some(withdrawals) = withdrawals {
                 for prefix in withdrawals {
                     event_batcher
-                        .insert(&Event {
+                        .insert(Event {
                             timestamp,
                             event_type: EventType::Withdrawal,
                             prefix_addr: to_ipv6(prefix.first_address()),

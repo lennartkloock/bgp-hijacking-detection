@@ -77,7 +77,7 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
             });
         }
 
-        let event_batcher = EventBatcher::new(&global.clickhouse, ctx.clone());
+        let event_batcher = EventBatcher::new(global.clickhouse.clone(), ctx.clone());
         let mut route_batcher = RoutesBatcher::new(global.db.clone(), ctx.clone());
 
         let mut timer = Instant::now();
