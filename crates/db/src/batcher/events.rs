@@ -26,7 +26,6 @@ async fn clickhouse_inserter_task<T: clickhouse::Row>(
             .await
             .commit()
             .await
-            .context("failed to insert events")
         {
             Ok(n) if n.rows > 0 => {
                 tracing::debug!(rows = n.rows, "wrote events to clickhouse");
@@ -44,7 +43,7 @@ impl EventBatcher {
         let inserter = Arc::new(Mutex::new(
             clickhouse
                 .inserter::<Event>("events")
-                .with_max_rows(10_000)
+                .with_max_rows(5_000)
                 .with_max_bytes(100 * 1024 * 1024), // 100MiB
         ));
 

@@ -56,7 +56,7 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
                         ripe_ris::live::watch_messages(ctx.clone(), ris_tx.clone(), ris_filter)
                             .await
                     {
-                        tracing::error!(err = %e, "failed to watch RIS messages");
+                        tracing::error!(err = ?e, "failed to watch RIS messages");
                     }
 
                     if last_try.elapsed() < Duration::from_secs(60) {
