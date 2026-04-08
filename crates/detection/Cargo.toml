@@ -1,0 +1,22 @@
+[package]
+name = "detection"
+version = "0.1.0"
+edition = "2024"
+authors = ["Lennart Kloock <lennart.kloock@protonmail.com>"]
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+scuffle-context = "0.1"
+scuffle-bootstrap = "0.1"
+scuffle-signal = { version = "0.3", features = ["bootstrap"] }
+scuffle-settings = { version = "0.1", features = ["cli", "toml", "bootstrap"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+db = { path = "../db" }
+profiling = { path = "../profiling" }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.6", features = ["profiling", "unprefixed_malloc_on_supported_platforms"] }

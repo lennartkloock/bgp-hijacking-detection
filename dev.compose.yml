@@ -1,0 +1,14 @@
+# psql -h localhost -p 5432 -U postgres -d postgres
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql
+
+volumes:
+  postgres:

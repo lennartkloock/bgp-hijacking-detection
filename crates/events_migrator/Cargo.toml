@@ -1,0 +1,17 @@
+[package]
+name = "events-migrator"
+version = "0.1.0"
+edition = "2024"
+authors = ["Lennart Kloock <lennart.kloock@protonmail.com>"]
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "sync"] }
+db = { path = "../db" }
+futures-util = "0.3"
+tokio-postgres = { version = "0.7", features = ["with-chrono-0_4", "with-cidr-0_3", "with-serde_json-1"] }
+postgres-types = { version = "0.2", features = ["derive"] }
+cidr = { version = "0.3", features = ["serde"] }
+clickhouse = { version = "0.14", features = ["chrono"] }
+indicatif = "0.18"

@@ -1,3 +1,9 @@
+# Rust
 target/
+
+# Typst
 paper/*.pdf
 slides/*.pdf
+
+# Local files
+local/
