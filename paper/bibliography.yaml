@@ -156,3 +156,10 @@ zmap:
   parent:
     type: Proceedings
     title: 22nd USENIX Security Symposium
+tokio-docs:
+  type: Web
+  title: tokio
+  author: ["Tokio Contributors"]
+  url:
+    value: https://docs.rs/tokio/1/tokio/
+    date: 2026-04-09

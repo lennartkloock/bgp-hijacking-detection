@@ -1,4 +1,4 @@
-= Fazit
+= Fazit <conclusion>
 
 - Erkenntnisse zusammenfassen
 - Muss ohne Lesen des Hauptteils verständlich sein

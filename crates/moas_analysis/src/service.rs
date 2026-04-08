@@ -43,14 +43,13 @@ impl scuffle_bootstrap::Service<Global> for MoasAnalysisSvc {
             let mut potential_moas: Vec<_> = db
                 .query(
                     "SELECT
-                        prefix,
-                        array_agg(DISTINCT origin ORDER BY origin) AS origins,
-                        max(updated_at) AS updated_at
-                    FROM routes,
-                        LATERAL UNNEST(origin_asn) AS origin
-                    WHERE array_length(origin_asn, 1) = 1
-                    GROUP BY prefix
-                    HAVING count(DISTINCT origin) > 1",
+                            prefix,
+                            array_agg(DISTINCT origin_asn[1] ORDER BY origin_asn[1]) AS origins,
+                            max(updated_at) AS updated_at
+                        FROM routes
+                        WHERE array_length(origin_asn, 1) = 1
+                        GROUP BY prefix
+                        HAVING count(DISTINCT origin_asn[1]) > 1;",
                     &[],
                 )
                 .await
