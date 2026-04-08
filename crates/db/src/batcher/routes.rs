@@ -19,7 +19,7 @@ const SMALL_BATCH_SIZE: usize = 2_000;
 
 async fn send_batch(
     db: &DbPool,
-    operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
+    operations: FxHashMap<(cidr::IpCidr, IpAddr, i16), RouteOperation>,
 ) -> anyhow::Result<u64> {
     let timer = Instant::now();
 
@@ -32,9 +32,10 @@ async fn send_batch(
 
     // Upserts
     {
-        let (prefix, origin_asn, peer_asn, peer_ip, host, updated_at): (
+        let (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at): (
             Vec<_>,
             Vec<&[i64]>,
+            Vec<_>,
             Vec<_>,
             Vec<_>,
             Vec<_>,
@@ -62,20 +63,16 @@ async fn send_batch(
 
         rows += conn
             .execute(
-                "WITH upserted AS (
-                    INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, updated_at)
-                    SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, updated_at
-                    FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::VARCHAR[], $6::TIMESTAMPTZ[])
-                    AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, updated_at)
+                "INSERT INTO routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at)
+                    SELECT prefix, string_to_array(origin_asn_text, ',')::BIGINT[], peer_asn, peer_ip, host, as_path, updated_at
+                    FROM UNNEST($1::CIDR[], $2::TEXT[], $3::BIGINT[], $4::INET[], $5::SMALLINT[], $6::JSONB[], $7::TIMESTAMPTZ[])
+                    AS t(prefix, origin_asn_text, peer_asn, peer_ip, host, as_path, updated_at)
                     ON CONFLICT (prefix, peer_ip, host) DO UPDATE SET
                         origin_asn = EXCLUDED.origin_asn,
                         peer_asn = EXCLUDED.peer_asn,
-                        updated_at = EXCLUDED.updated_at
-                    RETURNING prefix
-                )
-                SELECT pg_notify('bgp_updates', prefix::TEXT)
-                FROM (SELECT DISTINCT prefix FROM upserted) AS changed;",
-                &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &updated_at],
+                        as_path = EXCLUDED.as_path,
+                        updated_at = EXCLUDED.updated_at;",
+                &[&prefix, &origin_asn_text, &peer_asn, &peer_ip, &host, &as_path, &updated_at],
             )
             .await
             .context("failed to upsert routes")?;
@@ -83,7 +80,7 @@ async fn send_batch(
 
     // Deletions
     {
-        let (prefix, peer_ip, host): (Vec<&IpCidr>, Vec<&IpAddr>, Vec<&str>) =
+        let (prefix, peer_ip, host): (Vec<&IpCidr>, Vec<&IpAddr>, Vec<&i16>) =
             itertools::multiunzip(
                 operations
                     .iter()
@@ -91,14 +88,14 @@ async fn send_batch(
                         RouteOperation::Upsert(_) => None,
                         RouteOperation::Delete => Some(k),
                     })
-                    .map(|(p, i, h)| (p, i, h.as_str())),
+                    .map(|(p, i, h)| (p, i, h)),
             );
 
         rows += conn
             .execute(
                 "DELETE FROM routes
             WHERE (prefix, peer_ip, host) in (
-                SELECT * FROM UNNEST($1::CIDR[], $2::INET[], $3::VARCHAR[])
+                SELECT * FROM UNNEST($1::CIDR[], $2::INET[], $3::SMALLINT[])
             )",
                 &[&prefix, &peer_ip, &host],
             )
@@ -119,9 +116,8 @@ enum RouteOperation {
 }
 
 pub struct RoutesBatcher {
-    operations: FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>,
-    batches_tx:
-        tokio::sync::mpsc::Sender<FxHashMap<(cidr::IpCidr, IpAddr, String), RouteOperation>>,
+    operations: FxHashMap<(cidr::IpCidr, IpAddr, i16), RouteOperation>,
+    batches_tx: tokio::sync::mpsc::Sender<FxHashMap<(cidr::IpCidr, IpAddr, i16), RouteOperation>>,
     task_handle: JoinHandle<()>,
     task_handler: scuffle_context::Handler,
 }
@@ -164,7 +160,7 @@ impl RoutesBatcher {
     }
 
     pub async fn upsert(&mut self, route: Route) -> anyhow::Result<()> {
-        let k = (route.prefix, route.peer_ip, route.host.clone());
+        let k = (route.prefix, route.peer_ip, route.host);
         self.operations.insert(k, RouteOperation::Upsert(route));
 
         if self.operations.len() < SMALL_BATCH_SIZE {
@@ -178,7 +174,7 @@ impl RoutesBatcher {
         &mut self,
         prefix: IpCidr,
         peer_ip: IpAddr,
-        host: String,
+        host: i16,
     ) -> anyhow::Result<()> {
         self.operations
             .insert((prefix, peer_ip, host), RouteOperation::Delete);
@@ -235,7 +231,7 @@ impl RouteInsertBatcher {
 
         let conn = self.db.get().await.context("failed to get connection")?;
         // We don't NOTIFY for each prefix here because we can only detect hijackings live.
-        let sink = conn.copy_in("COPY routes (prefix, origin_asn, peer_asn, peer_ip, host, updated_at) FROM STDIN BINARY")
+        let sink = conn.copy_in("COPY routes (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at) FROM STDIN BINARY")
             .await
             .context("failed to open writer")?;
         let mut writer = pin!(BinaryCopyInWriter::new(
@@ -245,7 +241,8 @@ impl RouteInsertBatcher {
                 Type::INT8_ARRAY,
                 Type::INT8,
                 Type::INET,
-                Type::VARCHAR,
+                Type::INT2,
+                Type::JSONB,
                 Type::TIMESTAMPTZ,
             ]
         ));
@@ -259,6 +256,7 @@ impl RouteInsertBatcher {
                     &route.peer_asn,
                     &route.peer_ip,
                     &route.host,
+                    &route.as_path,
                     &route.updated_at,
                 ])
                 .await

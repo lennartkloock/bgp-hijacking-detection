@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use bgpkit_parser::models::AsPathSegment;
 use cidr::IpCidr;
 use futures_util::StreamExt;
 use reqwest::{StatusCode, Url};
@@ -73,14 +74,14 @@ pub(crate) async fn download_file(url: Url, cache_dir: &Path) -> anyhow::Result<
 
 pub(crate) fn bgpkit_elem_into_event(
     elem: bgpkit_parser::BgpElem,
-    host: String,
+    host: u8,
 ) -> anyhow::Result<Event> {
     let timestamp = timestamp_into_chrono(elem.timestamp)?;
     let prefix = bgpkit_prefix_into_cidr(elem.prefix).context("failed to convert prefix")?;
 
     let typ = if elem.is_announcement() {
-        // let mut as_path = elem.as_path.context("missing as path")?;
-        // as_path.dedup_coalesce();
+        let mut as_path = elem.as_path.context("missing as path")?;
+        as_path.dedup_coalesce();
 
         let origin_asn = elem
             .origin_asns
@@ -89,22 +90,22 @@ pub(crate) fn bgpkit_elem_into_event(
             .map(|asn| asn.to_u32())
             .collect();
 
-        // let mut path = Vec::new();
+        let mut path = Vec::new();
 
-        // for seg in as_path.segments {
-        //     match seg {
-        //         AsPathSegment::AsSequence(seq) => path.extend(
-        //             seq.into_iter()
-        //                 .map(|asn| serde_json::Value::from(asn.to_u32())),
-        //         ),
-        //         AsPathSegment::AsSet(set) => path.push(serde_json::Value::Array(
-        //             set.into_iter()
-        //                 .map(|asn| serde_json::Value::from(asn.to_u32()))
-        //                 .collect(),
-        //         )),
-        //         _ => anyhow::bail!("invalid as path"),
-        //     }
-        // }
+        for seg in as_path.segments {
+            match seg {
+                AsPathSegment::AsSequence(seq) => path.extend(
+                    seq.into_iter()
+                        .map(|asn| serde_json::Value::from(asn.to_u32())),
+                ),
+                AsPathSegment::AsSet(set) => path.push(serde_json::Value::Array(
+                    set.into_iter()
+                        .map(|asn| serde_json::Value::from(asn.to_u32()))
+                        .collect(),
+                )),
+                _ => anyhow::bail!("invalid as path"),
+            }
+        }
 
         EventType::Announcement(Announcement {
             prefix,
@@ -113,7 +114,7 @@ pub(crate) fn bgpkit_elem_into_event(
             peer_ip: elem.peer_ip,
             host,
             next_hop: elem.next_hop.map(|h| vec![h]).unwrap_or_default(),
-            // as_path: serde_json::Value::Array(path),
+            as_path: serde_json::Value::Array(path),
         })
     } else {
         EventType::Withdrawal(Withdrawal {

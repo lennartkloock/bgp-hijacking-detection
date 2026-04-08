@@ -11,7 +11,7 @@ use crate::{
     bgp,
     global::Global,
     ripe_ris::{
-        live::protocol::{RisLiveServerMessage, RisMessageType},
+        live::protocol::{AsPathElement, RisLiveServerMessage, RisMessageType},
         timestamp_into_chrono,
     },
 };
@@ -50,18 +50,18 @@ pub(crate) async fn handle_message(
             {
                 // ignore empty paths
                 if let Some(origin_asn) = path.last() {
-                    // let as_path: Vec<_> = path
-                    //     .iter()
-                    //     .map(|pe| match pe {
-                    //         AsPathElement::Asn(asn) => serde_json::Value::from(*asn),
-                    //         AsPathElement::AsSet(set) => serde_json::Value::Array(
-                    //             set.iter()
-                    //                 .map(|asn| serde_json::Value::from(*asn))
-                    //                 .collect(),
-                    //         ),
-                    //     })
-                    //     .collect();
-                    // let as_path = serde_json::Value::Array(as_path);
+                    let as_path: Vec<_> = path
+                        .iter()
+                        .map(|pe| match pe {
+                            AsPathElement::Asn(asn) => serde_json::Value::from(*asn),
+                            AsPathElement::AsSet(set) => serde_json::Value::Array(
+                                set.iter()
+                                    .map(|asn| serde_json::Value::from(*asn))
+                                    .collect(),
+                            ),
+                        })
+                        .collect();
+                    let as_path = serde_json::Value::Array(as_path);
 
                     let mut origin_asn = origin_asn.to_vec();
 
@@ -106,7 +106,8 @@ pub(crate) async fn handle_message(
                                     origin_asn: origin_asn_64.clone(),
                                     peer_asn: peer_asn as i64,
                                     peer_ip: peer,
-                                    host: host.clone(),
+                                    host: host_u8 as i16,
+                                    as_path: as_path.clone(),
                                     updated_at: timestamp,
                                 })
                                 .await
@@ -137,7 +138,7 @@ pub(crate) async fn handle_message(
                         .context("failed to write event")?;
 
                     route_batcher
-                        .delete(prefix, peer, host.clone())
+                        .delete(prefix, peer, host_u8 as i16)
                         .await
                         .context("failed to delete route")?;
                 }

@@ -45,18 +45,30 @@ pub struct Route {
     pub origin_asn: Vec<i64>,
     pub peer_asn: i64,
     pub peer_ip: IpAddr,
-    pub host: String,
+    pub host: i16,
+    pub as_path: serde_json::Value,
     pub updated_at: DateTime<Utc>,
 }
 
 impl Route {
-    pub fn to_tuple(&self) -> (cidr::IpCidr, &[i64], i64, IpAddr, &str, DateTime<Utc>) {
+    pub fn to_tuple(
+        &self,
+    ) -> (
+        cidr::IpCidr,
+        &[i64],
+        i64,
+        IpAddr,
+        i16,
+        &serde_json::Value,
+        DateTime<Utc>,
+    ) {
         (
             self.prefix,
             &self.origin_asn,
             self.peer_asn,
             self.peer_ip,
-            &self.host,
+            self.host,
+            &self.as_path,
             self.updated_at,
         )
     }

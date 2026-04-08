@@ -7,7 +7,7 @@ pub struct Config {
     pub db_url: String,
     pub clickhouse: ClickhouseConfig,
     pub only_seed: bool,
-    pub seed_rrc: String,
+    pub seed_rrc: u8,
     pub cache_dir: PathBuf,
     pub rrc_filter: Option<u8>,
 }
@@ -19,7 +19,7 @@ impl Default for Config {
             db_url: "postgres://postgres:postgres@localhost/postgres".to_string(),
             clickhouse: ClickhouseConfig::default(),
             only_seed: false,
-            seed_rrc: "rrc12".to_string(),
+            seed_rrc: 12,
             cache_dir: PathBuf::from_str("local").unwrap().join("cache"),
             rrc_filter: None,
         }

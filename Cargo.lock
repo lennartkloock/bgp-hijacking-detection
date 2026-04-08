@@ -1745,14 +1745,17 @@ name = "moas-analysis"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "cidr",
  "db",
  "futures",
+ "itertools 0.14.0",
  "scuffle-bootstrap",
  "scuffle-context",
  "scuffle-settings",
  "scuffle-signal",
  "serde",
+ "serde_json",
  "tokio",
  "tokio-postgres",
  "tracing",

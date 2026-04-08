@@ -29,20 +29,20 @@ pub(crate) fn next_update_date(since: NaiveDateTime) -> Option<NaiveDateTime> {
     if current < now { Some(current) } else { None }
 }
 
-pub(crate) fn bview_url(rrc: &str, date: NaiveDateTime) -> Url {
+pub(crate) fn bview_url(rrc: u8, date: NaiveDateTime) -> Url {
     let month = date.format("%Y.%m").to_string();
     let date_str = date.format("%Y%m%d.%H%M").to_string();
 
-    format!("https://data.ris.ripe.net/{rrc}/{month}/bview.{date_str}.gz")
+    format!("https://data.ris.ripe.net/rrc{rrc:02}/{month}/bview.{date_str}.gz")
         .parse()
         .unwrap()
 }
 
-pub(crate) fn update_url(rrc: &str, date: NaiveDateTime) -> Url {
+pub(crate) fn update_url(rrc: u8, date: NaiveDateTime) -> Url {
     let month = date.format("%Y.%m").to_string();
     let date_str = date.format("%Y%m%d.%H%M").to_string();
 
-    format!("https://data.ris.ripe.net/{rrc}/{month}/updates.{date_str}.gz")
+    format!("https://data.ris.ripe.net/rrc{rrc:02}/{month}/updates.{date_str}.gz")
         .parse()
         .unwrap()
 }

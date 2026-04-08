@@ -17,7 +17,7 @@ use crate::{
 pub(crate) async fn seed(
     global: &Arc<Global>,
     ctx: &scuffle_context::Context,
-    rrc: &str,
+    rrc: u8,
 ) -> anyhow::Result<()> {
     tracing::info!(path = ?global.config.cache_dir, "creating cache dir");
     tokio::fs::create_dir_all(&global.config.cache_dir)
@@ -45,10 +45,8 @@ pub(crate) async fn seed(
 async fn process_bview(
     global: &Arc<Global>,
     ctx: &scuffle_context::Context,
-    rrc: &str,
+    rrc: u8,
 ) -> anyhow::Result<NaiveDateTime> {
-    let host = format!("{rrc}.ripe.net");
-
     tracing::info!("starting to process bview");
 
     let bview_date = ripe_ris::archived::file_names::current_bview_date();
@@ -70,8 +68,7 @@ async fn process_bview(
             break;
         }
 
-        match ripe_ris::archived::bgpkit_elem_into_event(elem, host.clone()).map(|e| e.normalize())
-        {
+        match ripe_ris::archived::bgpkit_elem_into_event(elem, rrc).map(|e| e.normalize()) {
             Ok(Some(Event {
                 typ: EventType::Announcement(announcement),
                 timestamp,
@@ -98,10 +95,8 @@ async fn process_updates(
     global: &Arc<Global>,
     ctx: &scuffle_context::Context,
     since: NaiveDateTime,
-    rrc: &str,
+    rrc: u8,
 ) -> anyhow::Result<()> {
-    let host = format!("{rrc}.ripe.net");
-
     tracing::info!(since = ?since, "starting to process updates");
 
     let event_batcher = EventBatcher::new(global.clickhouse.clone(), ctx.clone());
@@ -129,7 +124,7 @@ async fn process_updates(
                 break;
             }
 
-            let event = match ripe_ris::archived::bgpkit_elem_into_event(elem, host.clone())
+            let event = match ripe_ris::archived::bgpkit_elem_into_event(elem, rrc)
                 .map(|e| e.normalize())
             {
                 Ok(Some(event)) => event,
@@ -140,7 +135,7 @@ async fn process_updates(
                 }
             };
 
-            event_batcher.insert(event.to_db()?).await?;
+            event_batcher.insert(event.to_db()).await?;
 
             match event.typ {
                 EventType::Announcement(announcement) => {
@@ -150,7 +145,11 @@ async fn process_updates(
                 }
                 EventType::Withdrawal(withdrawal) => {
                     route_batcher
-                        .delete(withdrawal.prefix, withdrawal.peer_ip, withdrawal.host)
+                        .delete(
+                            withdrawal.prefix,
+                            withdrawal.peer_ip,
+                            withdrawal.host as i16,
+                        )
                         .await?;
                 }
             }

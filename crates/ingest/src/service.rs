@@ -20,7 +20,7 @@ impl scuffle_bootstrap::service::Service<Global> for IngestSvc {
     async fn run(self, global: Arc<Global>, ctx: scuffle_context::Context) -> anyhow::Result<()> {
         tracing::info!("starting ingest service");
 
-        seeding::seed(&global, &ctx, &global.config.seed_rrc).await?;
+        seeding::seed(&global, &ctx, global.config.seed_rrc).await?;
 
         if global.config.only_seed {
             scuffle_context::Handler::global().cancel();

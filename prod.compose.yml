@@ -40,6 +40,7 @@ services:
       - 127.0.0.1:5432:5432
     volumes:
       - postgres:/var/lib/postgresql
+    restart: unless-stopped
     # command: postgres -c log_min_duration_statement=100
   clickhouse:
     image: clickhouse:26.3
