@@ -150,13 +150,9 @@ impl scuffle_bootstrap::Service<Global> for MoasAnalysisSvc {
             .query(
                 "SELECT prefix
                     FROM moas
-                    LEFT JOIN moas_whitelist
-                        ON moas.origins = moas_whitelist.origins
-                    WHERE moas_whitelist.origins IS NULL
-                        AND FAMILY(prefix) = 4
-                        AND last_scanned_at IS NULL
+                    WHERE FAMILY(prefix) = 4 AND last_scanned_at IS NULL
                     ORDER BY updated_at DESC
-                    LIMIT 100",
+                    LIMIT 500",
                 &[],
             )
             .await
@@ -178,7 +174,11 @@ impl scuffle_bootstrap::Service<Global> for MoasAnalysisSvc {
                         .await
                         .context("failed to aquire semaphore")?;
 
-                    let hosts = match run_zmap(prefix).with_context(&ctx).await {
+                    if ctx.is_done() {
+                        return Ok(());
+                    }
+
+                    let hosts = match run_zmap(prefix, &global.config.network_interface).with_context(&ctx).await {
                         Some(res) => res.context("failed to run zmap")?,
                         None => return Ok(()),
                     };
@@ -209,23 +209,22 @@ impl scuffle_bootstrap::Service<Global> for MoasAnalysisSvc {
 
         futures::future::join_all(futures).await;
 
-        tracing::info!("all scans done");
-
         scuffle_context::Handler::global().cancel();
         Ok(())
     }
 }
 
-async fn run_zmap(prefix: cidr::IpCidr) -> anyhow::Result<Vec<IpAddr>> {
+async fn run_zmap(prefix: cidr::IpCidr, interface: &str) -> anyhow::Result<Vec<IpAddr>> {
     tracing::debug!(prefix = %prefix, "running zmap");
 
     let out = Command::new("sudo")
         .arg("zmap")
         .arg("--output-file=-")
         .arg("--target-ports=443")
-        // .arg("--max-results=1")
+        .arg(format!("--interface={}", interface))
+        .arg("--iplayer")
         .arg(prefix.to_string())
-        .stderr(Stdio::null())
+        .stderr(Stdio::piped())
         .stdout(Stdio::piped())
         .kill_on_drop(true)
         .spawn()
@@ -234,8 +233,13 @@ async fn run_zmap(prefix: cidr::IpCidr) -> anyhow::Result<Vec<IpAddr>> {
         .await
         .context("failed to read zmap output")?;
 
+    if !out.status.success() {
+        let err = String::from_utf8(out.stderr).context("failed to parse zmap stderr as UTF-8")?;
+        anyhow::bail!("zmap exited with non-zero, stderr: {}", err);
+    }
+
     let addr: Vec<_> = String::from_utf8(out.stdout)
-        .context("failed to parse zmap output as UTF-8")?
+        .context("failed to parse zmap stdout as UTF-8")?
         .lines()
         .map(|l| l.parse())
         .collect::<Result<_, _>>()

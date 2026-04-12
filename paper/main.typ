@@ -27,6 +27,8 @@
   #v(0.2cm)
 ]
 
+#show link: set text(fill: accent_color)
+
 #include "cover.typ"
 
 #set page(numbering: "i", number-align: right + bottom)

@@ -17,8 +17,3 @@ CREATE TABLE moas (
     https_hosts INET[] DEFAULT ARRAY[]::INET[],
     last_scanned_at TIMESTAMPTZ DEFAULT NULL
 );
-
-CREATE TABLE moas_whitelist (
-    origins BIGINT[] PRIMARY KEY,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);

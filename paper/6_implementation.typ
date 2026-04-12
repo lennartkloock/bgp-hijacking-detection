@@ -15,15 +15,71 @@ Eigens entwickelte Programme sind blau hervorgehoben und werden im Folgenden nä
 
 === Ingest
 
-Die Aufgabe des Ingest-Programms ist es BGP-Daten von _RIPE RIS_ abzurufen und eine globale Routing-Tabelle zu pflegen, die zur späteren Analyse verwendet werden kann.
+Die Aufgabe des Ingest-Programms ist es BGP-Daten von _RIPE RIS_ abzurufen und eine globale Routing-Tabelle zu pflegen,
+die zur späteren Analyse verwendet werden kann.
 
-Wenn das Ingest-Programm anfangs eine leere `routes`-Tabelle vorfindet, wird diese mit einem _RIB Dump_ von _RIPE RIS_ gefüllt.
-Ein _RIB Dump_ beinhaltet die gesamte Routing-Tabelle eines Routers und dient somit ideal dazu die `routes`-Tabelle zu initialisieren.
-Da die _RIB Dumps_ jedoch nur alle acht Stunden generiert werden, werden außerdem alle Update-Archive heruntergeladen, die seit dem _RIB Dump_ generiert wurden und auf die lokale Routing-Tabelle angewendet.
-Am Ende dieses Initalisierungsprozesses ist die lokale Routing-Tabelle also höchstens fünf Minuten veraltet.
+Wenn das Ingest-Programm anfangs eine leere `routes`-Tabelle vorfindet,
+wird diese mit einem _RIB Dump_ von _RIPE RIS_ initialisiert.
+Ein _RIB Dump_ beinhaltet die gesamte Routing-Tabelle eines Routers und dient somit ideal dazu
+die `routes`-Tabelle zu initialisieren.
+Jeder _RIPE RIS RRC_ generiert alle acht Stunden ein _RIB Dump_, um 00:00 Uhr, 08:00 Uhr und 16:00 Uhr.
+Das vorgestellte Programm berechnet den Zeitstempel des neusten _RIP Dumps_ und lädt diesen herunter.
+Der _RCC_ wird über einen Konfigurationsparameter gewählt, welcher standardmäßig auf `rrc12` gesetzt ist.
 
-Anschließend baut das Programm eine Verbindung zum _RIPE RIS_ Live-Feed auf und leitet alle empfangenen UPDATE-Nachrichten an das Datenbanksystem _ClickHouse_ weiter.
-_ClickHouse_ ist eine spaltenorientierte Datenbank, die speziell auf das Sammeln und Auswerten einer großen Menge von Daten ausgelegt ist.
+Nachdem die lokale Routing-Tabelle mit einem _RIB Dump_ initialisiert wurde,
+werden anschließend nacheinander alle _RIPE RIS_ Update-Archive heruntergeladen, die seit dem _RIB Dump_ generiert wurden.
+
+#figure(caption: "Funktion zum Verarbeiten von Update-Dateien")[
+  ```rs
+  async fn process_updates(
+      global: &Arc<Global>,
+      ctx: &scuffle_context::Context,
+      since: NaiveDateTime,
+      rrc: u8,
+  ) -> anyhow::Result<()> {
+      tracing::info!(since = ?since, "starting to process updates");
+
+      let mut current = since;
+
+      while let Some(update_date) = next_update_date(current)
+          && !ctx.is_done()
+      {
+          current = update_date;
+
+          let url = update_url(rrc, update_date);
+          let Some(file) = download_file(url, &global.config.cache_dir).await?
+          else {
+              tracing::warn!(
+                  update_date = ?update_date,
+                  "update file not found, skipping"
+              );
+              continue;
+          };
+
+          // process file
+      }
+
+      Ok(())
+  }
+  ```
+] <process-updates-fn>
+
+@process-updates-fn zeigt die gekürzte `process_updates`-Funktion, welche nacheinander alle Update-Dateien seit dem
+übergebenen Zeitstempel `since` herunterlädt und verarbeitet.
+Die Funktion `next_update_date` gibt den nächsten Zeitstempel zurück indem sie den übergebenen Zeitstempel auf
+die nächste 5-Minuten-Marke aufrundet.
+Falls dieser in der Zukunft liegen sollte, wird ```rs None``` zurückgegeben und die Schleife somit beendet.
+Falls eine Update-Datei nicht auf dem _RIPE RIS_-Server gefunden wird, wird sie übersprungen.
+`ctx` speichert den Kontext in dem das Programm ausgeführt wird.
+Die `is_done`-Funktion gibt genau dann ```rs true``` zurück, wenn die Ausführung abgebrochen wurde
+und das Programm beendet werden soll. @scuffle-context-docs
+
+Am Ende dieses Initalisierungsprozesses ist die lokale Routing-Tabelle also im Normalfall höchstens fünf Minuten veraltet.
+
+Sowohl während der Initialisierung als auch im Live-Betrieb verarbeitet das Programm UPDATE-Nachrichten auf dieselbe Weise.
+Alle empfangenen UPDATE-Nachrichten werden an das Datenbanksystem _ClickHouse_ weitergeleitet.
+_ClickHouse_ ist eine spaltenorientierte Datenbank, die speziell auf das Sammeln und Auswerten
+einer großen Menge von Daten ausgelegt ist.
 Es nutzt außerdem Komprimierung um den verbrauchten Speicherplatz möglichst klein zu halten.
 Das macht es ideal zum Speichern der BGP-Updates, da in sehr kurzer Zeit sehr viele Daten anfallen.
 Die BGP-Updates werden gespeichert um sie später bei der manuellen Auswertung nutzen zu können.
@@ -48,11 +104,12 @@ welche als Tabelle in einer _PostgreSQL_-Datenbank gespeichert wird.
 ] <routes-sql>
 
 @routes-sql zeigt das Datenbankschema der Tabelle.
-Dank der _PostgreSQL_-Datentypen ```sql CIDR``` und ```sql INET``` können dabei IP-Präfixe und -Adressen möglichst effizient gespeichert werden.
+Dank der _PostgreSQL_-Datentypen ```sql CIDR``` und ```sql INET``` können dabei IP-Präfixe und -Adressen
+möglichst effizient gespeichert werden.
 
-// TODO: origin_asn und as_path Typen genauer erläutern
 Die Spalte `origin_asn` speichert das letzte Element von `as_path`.
-Das BGP-Protokoll unterstützt in AS-Pfaden neben einzelnen AS-Nummern auch das Zusammenführen von mehreren AS-Nummern zu einem AS-Set. @rfc1654
+Das BGP-Protokoll unterstützt in AS-Pfaden neben einzelnen AS-Nummern auch
+das Zusammenführen von mehreren AS-Nummern zu einem AS-Set. @rfc1654
 Aus diesem Grund ist der Datentyp der `origin_asn`-Spalte ```sql BIGINT[]``` statt ```sql BIGINT```.
 
 Die Kombination von `peer_ip` (_Vantage Point_) und `host` (_RIPE RIS RRC_) identifiziert eine Peering-Session
@@ -60,7 +117,7 @@ zwischen _RIPE RIS_ und einem anderen AS, was in Kombination mit einem Präfix d
 Diese stellt sicher, dass immer nur jeweils eine Route pro Präfix und Peering-Session gespeichert wird.
 Der Peer ist dabei der _Vantage Point_ vom welchem _RIPE RIS_ die Daten ersprünglich empfangen hat.
 
-#figure(caption: "SQL-Abfrage um ein BGP-Update auf die lokale Routing-Tabelle anzuwenden")[
+#figure(caption: "SQL-Abfrage um ein BGP-Announcement auf die lokale Routing-Tabelle anzuwenden")[
   ```sql
   INSERT INTO routes
       (prefix, origin_asn, peer_asn, peer_ip, host, as_path, updated_at)
@@ -75,7 +132,18 @@ Der Peer ist dabei der _Vantage Point_ vom welchem _RIPE RIS_ die Daten ersprün
 
 @routes-upsert zeigt die SQL-Abfrage mit der eine Route in der Routing-Tabelle eingefügt bzw. aktualisiert wird.
 Die Parameter `$1` bis `$7` werden mit den entsprechenden Daten von _RIPE RIS_ gefüllt.
-Falls die neue Route mit einer bereits bestehenden Route in Konflikt steht, wird die bestehende Route mit den Werten der neuen aktualisiert.
+Falls die neue Route mit einer bereits bestehenden Route in Konflikt steht, wird die bestehende Route mit den Werten der
+neuen aktualisiert.
+
+Beim Zurückziehen von BGP-Routen (Withdrawal), wird die entsprechende Route aus der Datenbank entfernt wie in @routes-delete
+gezeigt.
+
+#figure(caption: "SQL-Abfrage um ein BGP-Withdrawal auf die lokale Routing-Tabelle anzuwenden")[
+  ```sql
+  DELETE FROM routes WHERE prefix = $1 AND peer_ip = $2 AND host = $3;
+  ```
+] <routes-delete>
+
 Das simuliert das Verhalten eines normalen Routers.
 
 // - Globale Routing-Tabelle pflegen
@@ -98,23 +166,26 @@ Die Aufgabe des MOAS-Analysis-Programms ist es MOAS-Präfixe zu erkennen und die
 Zuerst werden alle Präfixe gefunden, die von verschiedenen Origin-AS gleichzeitig verkündet werden.
 Dazu wird die Routing-Tabelle mithilfe der SQL-Abfrage in @moas-scan-sql nach solchen Präfixen durchsucht.
 
-#figure(caption: "SQL-Abfrage zum Identifizieren von MOAS-Präfixen")[
+#figure(caption: [SQL-Abfrage zum Identifizieren von MOAS-Präfixen])[
   ```sql
   SELECT
       prefix,
       array_agg(DISTINCT origin_asn[1] ORDER BY origin_asn[1]) AS origins,
       max(updated_at) AS updated_at
   FROM routes
-  WHERE array_length(origin_asn, 1) = 1
+  WHERE array_length(origin_asn, 1) = 1 AND family(prefix) = 4
   GROUP BY prefix
   HAVING count(DISTINCT origin_asn[1]) > 1;
   ```
 ] <moas-scan-sql>
 
-Hier wurde sich explizit dafür entschieden AS-Sets zu ignorieren.
-Das macht die Analyse anfangs etwas einfacher.
+// TODO: indexierung bei [1] erklären
+Hier wurde sich explizit dafür entschieden AS-Sets, sowie IPv6-Präfixe zu ignorieren.
+Diese Einschränkungen machen die Analyse anfangs etwas einfacher.
 
-Nachdem die Liste von MOAS-Präfixen generiert wurde, können außerdem Origins aussortiert werden, welche in allen AS-Pfaden des Präfixes auftauchen.
+Nachdem die Liste von MOAS-Präfixen generiert wurde, können außerdem Origins aussortiert werden,
+welche in allen AS-Pfaden des Präfixes auftauchen.
+// TODO: weiter ausführen
 
 Die übrigen Präfixe werden nun in einer Tabelle der PostgreSQL-Datenbank gespeichert.
 Das Schema dieser Tabelle ist @moas-schema-sql zu entnehmen.
@@ -133,7 +204,7 @@ Das Schema dieser Tabelle ist @moas-schema-sql zu entnehmen.
 
 In den übrigen Präfixen soll nun, wie in @concept vorgestellt, ein TLS-Host gefunden werden.
 Das vorher beschriebene Vorgehen mit _Shodan_ funktioniert nicht, da zu viele MOAS-Präfixe gefunden werden.
-_Shodan_ ist ohne bezahlten Zugang nicht auf eine große Menge von Anfragen ausgelegt. @shodan
+_Shodan_ ist ohne bezahlten Zugang nicht auf eine große Menge von Anfragen ausgelegt. @shodan-website
 Die genauen Zahlen finden sich später in @evaluation.
 Als Alternative wurde für diese Arbeit das ebenfalls populäre Programm _zmap_ @zmap gewählt.
 Damit lassen sich ganze IP-Adressbereiche in kurzer Zeit selbst scannen.
@@ -160,7 +231,8 @@ Nachdem die `zmap`-Scans durchgeführt wurden, werden alle Hosts, wie in @update
   ```
 ] <update-moas-sql>
 
-Wie im nächsten Kapitel ebenfalls gezeigt wird, gibt es auch an dieser Stelle noch viele Treffer, weswegen die Analyse der Fälle mit _RIPE Atlas_ nicht automatisiert wurde.
+Wie im nächsten Kapitel ebenfalls gezeigt wird, gibt es auch an dieser Stelle noch viele Treffer,
+weswegen die Analyse der Fälle mit _RIPE Atlas_ nicht automatisiert wurde.
 
 // - MOAS Präfixe erkennen
 // - Warum nicht Shodan wie anfangs vorgestellt?
@@ -172,12 +244,14 @@ Wie im nächsten Kapitel ebenfalls gezeigt wird, gibt es auch an dieser Stelle n
 == Umsetzung mit Rust
 
 Für die Entwicklung der oben erklärten Programme wurde die Programmiersprache _Rust_ gewählt.
-_Rust_ ist eine gute Wahl für Programme, die in kürzester Zeit viele Daten verarbeiten müssen, wie das vorgestellte Ingest-Programm.
-Abgesehen davon bietet _Rust_ ein vollumfängliches Ecosystem für alle genannten Datenbanksysteme.
-Das macht _Rust_ zu einer sehr guten Wahl für diesen Anwendungsfall.
+_Rust_ ist eine gute Wahl für Programme, die in kürzester Zeit viele Daten verarbeiten müssen, wie das vorgestellte
+Ingest-Programm.
+Abgesehen davon bietet _Rust_ ein vollumfängliches Ecosystem für alle genannten Datenbanksysteme und
+macht es vergleichweise einfach parallele Systeme zu entwickeln.
+Das macht die Sprache zu einer sehr guten Wahl für diesen Anwendungsfall.
 
-Die genutzten Software-Bibliotheken sind unter anderem `tokio`, `tokio-postgres`, `clickhouse`, das `serde`-Ecosystem,
-das `scuffle`-Ecosystem sowie das `tracing`-Ecosystem, da diese die Entwicklung wesentlich einfacher und schneller machen.
+Die genutzten Software-Bibliotheken sind unter anderem `tokio`, `anyhow`, `tokio-postgres`, `clickhouse`, das
+`serde`-Ecosystem, das `scuffle`-Ecosystem sowie das `tracing`-Ecosystem, da diese die Entwicklung wesentlich einfacher machen.
 
 #figure(caption: "Parallele Tasks und Datenfluss in Ingest")[
   #image(width: 20em, "images/ingest.drawio.pdf")
@@ -185,8 +259,21 @@ das `scuffle`-Ecosystem sowie das `tracing`-Ecosystem, da diese die Entwicklung 
 
 @ingest-flow zeigt die interne Struktur von Ingest.
 Die Aufgaben, die Ingest übernimmt sind in verschiedene `tokio`-Tasks @tokio-docs aufgeteilt, sodass sie sich nicht
-gegenseitig blockieren können und vollständig parallel zueinander ausgeführt werden können.
-Zur Kommunikation zwischen den Tasks werden außerdem `tokio`-Channels @tokio-docs genutzt.
+gegenseitig blockieren und vollständig parallel zueinander ausgeführt werden können.
+Zur Kommunikation zwischen den Tasks werden `tokio` Bound Channels @tokio-docs genutzt.
+Diese dienen zum Senden und Empfangen von beliebigen Werten in parallelen Programmen.
+
+Die `main`-Task des Programms wird als erstes gestartet und erstellt, sowie koordiniert die anderen Tasks.
+Nachdem der oben beschriebene Initialisierungsprozess beendet wurde, erstellt `main` eine Task, die sich mit dem Live-Endpunkt
+von _RIPE RIS_ verbindet um die BGP-Updates zu empfangangen und über einen `tokio`-Channel an die `main`-Task zu schicken.
+Diese Task wird in @ingest-flow `watch RIS messages`-Task genannt.
+Die `main`-Task sammelt mehrere Updates bis zu einer bestimmten Kapazitätsgrenze und sendet sie anschließend als sogenannten
+_Batch_ an die `routes batcher`- und `events inserter`-Tasks.
+Diese beiden Tasks sind für die Interaktion mit den Datenbanken zuständig und führen die oben genannten Schreiboperationen durch.
+
+Für maximale Reproduzierbarkeit wird der Code öffentlich auf
+#link("https://github.com/lennartkloock/bgp-hijacking-detection")[GitHub] bereitgestellt.
+Die Software selbst ist außerdem ebenfalls auf GitHub als Docker-Image abrufbar.
 
 // - Libraries
 // - Codebeispiele
