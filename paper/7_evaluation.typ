@@ -95,11 +95,12 @@ Das deckt sich mit der Erwartung: Legitimes Multihoming involviert typischerweis
 
 Im nächsten Schritt wurden alle #display_number(moas_4) IPv4-MOAS-Präfixe mit _zmap_ auf Dienste auf TCP-Port 443 gescannt, um potenzielle TLS-Hosts zu identifizieren.
 #let at_least_one_host = 2152
-Dabei wurde in #display_number(at_least_one_host) Präfixen mindestens ein Host gefunden, der auf TCP-Port 443 antwortet, was einem Anteil von #display_percent(at_least_one_host / moas_4) entspricht.
-In den verbleibenden #display_number(moas_4 - at_least_one_host) Präfixen konnte kein solcher Host gefunden werden, weshalb für diese Fälle keine TLS-Analyse möglich ist.
+Dabei wurde in #display_number(at_least_one_host) IPv4-Präfixen mindestens ein Host gefunden, der auf TCP-Port 443 antwortet,
+was einem Anteil von #display_percent(at_least_one_host / moas_4) entspricht.
+In den verbleibenden #display_number(moas_4 - at_least_one_host) IPv4-Präfixen konnte kein solcher Host gefunden werden, weshalb für diese Fälle keine TLS-Analyse möglich ist.
+Die IPv6-MOAS-Präfixe wurden ebenfalls von der Analyse ausgeschlossen, da ein _zmap_-Scan aufgrund der großen Zahl von Adressen zu lange dauern würde.
 
-Aufgrund der hohen Anzahl verbleibender Kandidaten wurde die weitergehende Analyse mit RIPE Atlas nicht automatisiert durchgeführt.
-Eine vollständige automatische Auswertung aller Fälle würde eine große Anzahl von Atlas-Messungen erfordern, was die verfügbaren Credits und die Verfügbarkeit geeigneter Probes übersteigt.
+Aufgrund der hohen Anzahl verbleibender Kandidaten wurde die weitergehende Analyse mit _RIPE Atlas_ nicht automatisiert durchgeführt.
 Stattdessen wurde ein Fall manuell untersucht.
 
 Wie aus den gesammelten Daten hervorgeht, wird der Präfix `41.221.216.0/24` von AS `31713`, sowie von AS `3491` bekanntgegeben.

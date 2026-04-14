@@ -5,6 +5,7 @@
 )
 
 #show outline.entry: it => {
+  show link: set text(fill: black)
   // Workaround to hide the prefix
   show "Abbildung": ""
   it
