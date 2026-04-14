@@ -25,7 +25,7 @@ Folgendes Kapitel beschäftigt sich mit der Auswertung und Interpretation der ge
 Wie @clickhouse-stats zu entnehmen ist, wurden im Zeitraum vom 1. April 2026, 18:00 Uhr bis zum 6. April 2026, 21:00 Uhr (Zeitzone: UTC)
 ca. 347,8 Millionen BGP-Updates aufgezeichnet.
 Ingest war in dem genannten Zeitraum so konfiguriert, dass lediglich BGP-Updates von _RIPE RIS_ RRC12 empfangen werden,
-da die SQL-Abfrage aus @routes-upsert zu langsam ist um BGP-Updates von allen _RRCs_ zu verarbeiten.
+da die SQL-Abfrage aus @routes-upsert zu langsam ist, um BGP-Updates von allen _RRCs_ zu verarbeiten.
 Durchschnittlich wurden in diesem Zeitraum also ca. 786 BGP-Updates pro Sekunde empfangen.
 
 #figure(caption: "Empfangene BGP-Updates pro Sekunde im betrachteten Zeitraum")[
@@ -59,11 +59,10 @@ Dabei handelt es sich meistens um das bereits erwähnte Zeitfenster von 5 Minute
 ] <routes-and-moas>
 
 Wie @routes-and-moas zu entnehmen ist, wurden zum Zeitpunkt der Messung insgesamt #display_number(routes_total) Routen in der lokalen Routing-Tabelle gespeichert.
-Davon sind #display_percent(routes_4 / routes_total) IPv4- und #display_percent(routes_6 / routes_total) auf IPv6-Präfixe.
+Davon sind #display_percent(routes_4 / routes_total) IPv4- und #display_percent(routes_6 / routes_total) IPv6-Präfixe.
 Von den insgesamt #display_number(moas_total) erkannten MOAS-Präfixen sind #display_number(moas_4) IPv4-Präfixe
 (#display_percent(moas_4 / moas_total)) und #display_number(moas_6) IPv6-Präfixe (#display_percent(moas_6 / moas_total)).
 Damit weisen IPv4-Präfixe im Verhältnis zur Gesamtanzahl eine höhere MOAS-Rate auf als IPv6-Präfixe.
-Das ist plausibel, da der IPv4-Adressraum deutlich länger in Gebrauch ist und historisch gewachsene Mehrfachankündigungen, etwa durch Multihoming, dort weiter verbreitet sind.
 
 #let moas_origins_2 = 6035
 #let moas_origins_3 = 355
@@ -101,7 +100,7 @@ In den verbleibenden #display_number(moas_4 - at_least_one_host) IPv4-Präfixen 
 Die IPv6-MOAS-Präfixe wurden ebenfalls von der Analyse ausgeschlossen, da ein _zmap_-Scan aufgrund der großen Zahl von Adressen zu lange dauern würde.
 
 Aufgrund der hohen Anzahl verbleibender Kandidaten wurde die weitergehende Analyse mit _RIPE Atlas_ nicht automatisiert durchgeführt.
-Stattdessen wurde ein Fall manuell untersucht.
+Stattdessen wurde ein Fall manuell untersucht, um die Funktionsfähigkeit zu demonstrieren.
 
 Wie aus den gesammelten Daten hervorgeht, wird der Präfix `41.221.216.0/24` von AS `31713`, sowie von AS `3491` bekanntgegeben.
 AS `31713` ist unter dem Namen "Gateway Communications" und AS `3491` unter dem Namen "PCCW Global (HK) Ltd." registriert.
@@ -119,7 +118,7 @@ Damit handelt es sich in diesem Fall um einen _Safe MOAS_-Präfix.
 Insgesamt zeigt die Evaluation, dass MOAS-Konflikte ein häufig auftretendes Phänomen im globalen BGP-Routing sind.
 Die große Mehrheit der Konflikte hat genau zwei Origins, was sowohl auf legitimes _Multihoming_ als auch auf einfache Prefix-Hijacking-Angriffe zutrifft.
 
-Die Ergebnisse zeigen, dass die hier vorgestellte Methode prinzipiell genutzt werden kann um legitime MOAS-Konflikte von potenziellen Prefix-Hijacking-Angriffen zu unterscheiden.
+Die Ergebnisse zeigen, dass die hier vorgestellte Methode prinzipiell genutzt werden kann, um legitime MOAS-Konflikte von potenziellen Prefix-Hijacking-Angriffen zu unterscheiden.
 Es wird jedoch vorrausgesetzt, dass im betroffenen Präfix ein TLS-Dienst betrieben wird, was die Menge von Präfixen für die diese Methode angewandt werden kann, deutlich einschränkt.
 Damit kann die Methode lediglich ergänzend genutzt werden und nicht als alleinige Grundlage für eine zuverlässige Prefix-Hijacking-Erkennung dienen.
 

@@ -162,6 +162,8 @@ Das simuliert das Verhalten eines normalen Routers.
 === MOAS Analysis
 
 Die Aufgabe des MOAS-Analysis-Programms ist es MOAS-Präfixe zu erkennen und diese weitergehend zu analysieren.
+Die in @concept-1 beschriebenen Zustände _Likely Hijack_ und _Safe MOAS_ setzen eine automatisierte Durchführung der _RIPE Atlas_-Messungen voraus.
+Im Rahmen dieser Arbeit wurde dieser Schritt jedoch nicht automatisiert umgesetzt, da der Arbeitsaufwand und die Anzahl der verbleibenden MOAS-Kandidaten zu hoch ist.
 
 Zuerst werden alle Präfixe gefunden, die von verschiedenen Origin-AS gleichzeitig verkündet werden.
 Dazu wird die Routing-Tabelle mithilfe der SQL-Abfrage in @moas-scan-sql nach solchen Präfixen durchsucht.
@@ -183,9 +185,8 @@ Dazu wird die Routing-Tabelle mithilfe der SQL-Abfrage in @moas-scan-sql nach so
 Hier wurde sich explizit dafür entschieden AS-Sets, sowie IPv6-Präfixe zu ignorieren.
 Diese Einschränkungen machen die Analyse anfangs etwas einfacher.
 
-Nachdem die Liste von MOAS-Präfixen generiert wurde, können außerdem Origins aussortiert werden,
-welche in allen AS-Pfaden des Präfixes auftauchen.
-// TODO: weiter ausführen
+Nachdem die Liste von MOAS-Präfixen generiert wurde, können außerdem Origins aussortiert werden, welche in allen AS-Pfaden des jeweiligen Präfixes als Pfadelement vorkommen,
+da es sich in diesen Fällen wahrscheinlich um gemeinsame Transit-AS und nicht um konkurrierende Origin-AS handelt.
 
 Die übrigen Präfixe werden nun in einer Tabelle der PostgreSQL-Datenbank gespeichert.
 Das Schema dieser Tabelle ist @moas-schema-sql zu entnehmen.
@@ -216,7 +217,7 @@ Da für diesen Schritt lediglich die Existenz eines TLS-Hosts von Bedeutung ist,
   ```
 ] <zmap-call>
 
-@zmap-call zeigt den _zmap_-Befehl der genutzt wird um einen gegebenen Präfix nach Hosts zu scannen.
+@zmap-call zeigt den _zmap_-Befehl der von dem MOAS-Analysis-Programm genutzt wird um einen gegebenen Präfix nach Hosts zu scannen.
 Dabei ist hervorzuheben, dass der Befehl nur nach Diensten auf Port 443 sucht, welcher der Standardport für HTTPS-Server ist.
 Falls ein TLS-Dienst auf einem anderen Port antworten sollte, wird dieser mit diesem Verfahren nicht gefunden.
 Ebenfalls kann es passieren, dass auf Port 443 ein Dienst antwortet, welcher gar kein TLS-Dienst ist.

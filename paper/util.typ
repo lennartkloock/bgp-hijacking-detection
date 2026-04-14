@@ -44,7 +44,7 @@
 #let display_percent(n) = {
   let rounded = calc.round(n * 100, digits: 2)
   let s = str(rounded).replace(".", ",")
-  return [#s %]
+  return [#s#sym.space.nobreak%]
 }
 
 #let display_number(n) = {
