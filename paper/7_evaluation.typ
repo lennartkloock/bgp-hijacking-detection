@@ -90,13 +90,13 @@ Das ist plausibel, da der IPv4-Adressraum deutlich länger in Gebrauch ist und h
 
 @moas-origins zeigt, dass die große Mehrheit der MOAS-Konflikte genau zwei Origins hat (#display_percent(moas_origins_2 / moas_total)).
 Konflikte mit drei oder mehr Origins sind deutlich seltener und machen zusammen weniger als
-#display_percent(less_than) aller Fälle aus.
-Das deckt sich mit der Erwartung: Legitimes Multihoming involviert typischerweise nur zwei AS, während eine größere Anzahl von Origins auf komplexere Infrastrukturen oder Fehlkonfigurationen hindeutet.
+#display_percent(less_than) der Fälle aus.
+Das deckt sich mit der Erwartung, dass legitimes _Multihoming_ typischerweise nur zwei AS involviert.
+Eine größere Anzahl von Origins deutet auf komplexere Infrastrukturen oder Fehlkonfigurationen hin.
 
 Im nächsten Schritt wurden alle #display_number(moas_4) IPv4-MOAS-Präfixe mit _zmap_ auf Dienste auf TCP-Port 443 gescannt, um potenzielle TLS-Hosts zu identifizieren.
 #let at_least_one_host = 2152
-Dabei wurde in #display_number(at_least_one_host) IPv4-Präfixen mindestens ein Host gefunden, der auf TCP-Port 443 antwortet,
-was einem Anteil von #display_percent(at_least_one_host / moas_4) entspricht.
+Dabei wurde in #display_number(at_least_one_host) IPv4-Präfixen mindestens ein Host gefunden, der auf TCP-Port 443 antwortet, was einem Anteil von #display_percent(at_least_one_host / moas_4) entspricht.
 In den verbleibenden #display_number(moas_4 - at_least_one_host) IPv4-Präfixen konnte kein solcher Host gefunden werden, weshalb für diese Fälle keine TLS-Analyse möglich ist.
 Die IPv6-MOAS-Präfixe wurden ebenfalls von der Analyse ausgeschlossen, da ein _zmap_-Scan aufgrund der großen Zahl von Adressen zu lange dauern würde.
 
@@ -111,13 +111,16 @@ Um die weitere Analyse mithilfe von _RIPE Atlas_ durchzuführen müssen zuerst z
 die TLS-Anfragen geschickt werden können.
 _RIPE Atlas_ erlaubt es einem alle Probes nach deren AS-Nummern zu filtern.
 Eine Suche nach den beiden AS-Nummern der beiden Origin-AS ergibt mehrere Probes, die für die Messung infrage kommen.
-Die Ergebnisse der #link("https://atlas.ripe.net/measurements/163261121/overview")[Messung] zeigen, dass derselbe TLS-Dienst
-von allen Probes aus erreicht wird.
+Die Ergebnisse der #link("https://atlas.ripe.net/measurements/163261121/overview")[Messung] zeigen, dass alle _Probes_ dasselbe Zertifikat empfangen.
+Das weißt darauf hin das sie entweder alle denselben Server erreichen oder unterschiedliche, die jedoch dasselbe Zertifikat nutzen.
+Letzteres würde bedeuten, dass beide Server authorisiert sind, da sie beide Zugriff auf den privaten Schlüssel des Zertifikats haben.
+Damit handelt es sich in diesem Fall um einen _Safe MOAS_-Präfix.
 
 Insgesamt zeigt die Evaluation, dass MOAS-Konflikte ein häufig auftretendes Phänomen im globalen BGP-Routing sind.
-Die überwiegende Mehrheit der Konflikte hat genau zwei Origins, was sowohl auf legitimes Multihoming als auch auf einfache
-Prefix-Hijacking-Angriffe zutrifft und eine automatische Unterscheidung allein auf Basis von BGP-Daten erschwert.
-Die TLS-basierte Methode setzt zudem voraus, dass im betroffenen Präfix ein erreichbarer TLS-Dienst auf Port 443 betrieben wird,
-was nicht in allen Fällen gegeben ist und die Anwendbarkeit des Verfahrens einschränkt.
+Die große Mehrheit der Konflikte hat genau zwei Origins, was sowohl auf legitimes _Multihoming_ als auch auf einfache Prefix-Hijacking-Angriffe zutrifft.
+
+Die Ergebnisse zeigen, dass die hier vorgestellte Methode prinzipiell genutzt werden kann um legitime MOAS-Konflikte von potenziellen Prefix-Hijacking-Angriffen zu unterscheiden.
+Es wird jedoch vorrausgesetzt, dass im betroffenen Präfix ein TLS-Dienst betrieben wird, was die Menge von Präfixen für die diese Methode angewandt werden kann, deutlich einschränkt.
+Damit kann die Methode lediglich ergänzend genutzt werden und nicht als alleinige Grundlage für eine zuverlässige Prefix-Hijacking-Erkennung dienen.
 
 #pagebreak()
