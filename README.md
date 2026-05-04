@@ -9,5 +9,5 @@ University project (mostly in German)
 Take a look at the latest builds:
 
 - [Paper](https://github.com/lennartkloock/bgp-hijacking-detection/releases/tag/paper-latest)
-- [Concept Slides](https://github.com/lennartkloock/bgp-hijacking-detection/releases/tag/concept-slides-latest)
-- [Implementation Slides](https://github.com/lennartkloock/bgp-hijacking-detection/releases/tag/implementation-slides-latest)
+- [Slides Part 1](https://github.com/lennartkloock/bgp-hijacking-detection/releases/tag/slides-part-1-latest)
+- [Slides Part 2](https://github.com/lennartkloock/bgp-hijacking-detection/releases/tag/slides-part-2-latest)

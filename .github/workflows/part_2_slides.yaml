@@ -1,4 +1,4 @@
-name: Implementation Slides
+name: Slides Part 2
 on: push
 jobs:
   compile:
@@ -9,12 +9,12 @@ jobs:
       - uses: actions/checkout@v5
       - uses: typst-community/setup-typst@v4.3.0
       - name: Compile main.typ
-        run: typst compile slides/implementation/main.typ implementation_slides.pdf --root ./slides --font-path ./slides/fonts
+        run: typst compile slides/part_2/main.typ slides_part_2.pdf --root ./slides --font-path ./slides/fonts
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: implementation_slides
-          path: implementation_slides.pdf
+          name: slides_part_2
+          path: slides_part_2.pdf
   release:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -26,16 +26,16 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v5
         with:
-          name: implementation_slides
+          name: slides_part_2
       - name: Delete old release
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release delete implementation-slides-latest --cleanup-tag
+        run: gh release delete slides-part-2-latest --cleanup-tag
       - name: Create new release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: implementation-slides-latest
-          name: Implementation Slides
-          files: implementation_slides.pdf
+          tag_name: slides-part-2-latest
+          name: Slides Part 2
+          files: slides_part_2.pdf
           generate_release_notes: false
