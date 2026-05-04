@@ -27,13 +27,14 @@
   #v(0.2cm)
 ]
 
+#show link: set text(fill: accent_color)
+
 #include "cover.typ"
 
 #set page(numbering: "i", number-align: right + bottom)
 #counter(page).update(1)
 
 #include "statement.typ"
-// #include "abstract.typ"
 #include "toc.typ"
 
 #let get_first_heading_on_page(loc) = {

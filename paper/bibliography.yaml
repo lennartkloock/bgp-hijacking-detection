@@ -156,3 +156,17 @@ zmap:
   parent:
     type: Proceedings
     title: 22nd USENIX Security Symposium
+tokio-docs:
+  type: Web
+  title: tokio
+  author: ["Tokio Contributors"]
+  url:
+    value: https://docs.rs/tokio/1/tokio/
+    date: 2026-04-09
+scuffle-context-docs:
+  type: Web
+  title: scuffle-context
+  author: ["Scuffle Cloud Developers"]
+  url:
+    value: https://docs.rs/scuffle-context/0.1/scuffle_context/
+    date: 2026-04-09

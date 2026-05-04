@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="1bh6HczWXTFbVbbPHxhg">
+    <mxGraphModel dx="804" dy="546" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="OTHezntq9qP1IRoONcNq-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="278" width="425" x="37.5" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-7" edge="1" parent="1" source="OTHezntq9qP1IRoONcNq-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OTHezntq9qP1IRoONcNq-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-8" edge="1" parent="1" source="OTHezntq9qP1IRoONcNq-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OTHezntq9qP1IRoONcNq-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;main&lt;/div&gt;&lt;div&gt;Task&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="95" x="202.5" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-6" edge="1" parent="1" source="OTHezntq9qP1IRoONcNq-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OTHezntq9qP1IRoONcNq-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;watch RIS messages&lt;/div&gt;&lt;div&gt;Task&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="125" x="187.5" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;events inserter&lt;/div&gt;Task" vertex="1">
+          <mxGeometry height="50" width="105" x="315" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;routes batcher&lt;/div&gt;Task" vertex="1">
+          <mxGeometry height="50" width="105" x="70" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="OTHezntq9qP1IRoONcNq-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1;fontColor=#0066CC;fontSize=16;" value="Ingest" vertex="1">
+          <mxGeometry height="30" width="60" x="220" y="18" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

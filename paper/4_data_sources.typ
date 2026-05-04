@@ -8,13 +8,24 @@ _RIPE Routing Information Service_ (kurz: _RIPE RIS_) ist ein Dienst der von _RI
 _RIPE NCC_ ist die regionale Internet-Registrierungsstelle (kurz: RIR) für Europa, den Nahen Osten und Zentral-Asien.
 _RIPE RIS_ sammelt weltweit BGP-Daten von sogenannten _Vantage Points_ und stellt diese öffentlich zur Verfügung.
 _Vantage Points_ sind Router verschiedener AS, die BGP-Daten freiwillig mit _RIPE RIS_ teilen, um die Forschung und das Verständnis des Internets zu fördern.
-Die Daten werden sowohl als historische Archive als auch in Echtzeit über einen Live-Feed bereitgestellt.
 @ripe-ris-docs
 
 _RIPE RIS_ hat 780 _Vantage Points_ für IPv4 und 651 für IPv6 (Stand: Januar 2026). @ripe-ris-peer-count
 Das bedeutet, dass nicht alle BGP-Routen des Internets erfasst werden, was zu blinden Flecken führen kann.
 
 Die in @bgp-update-example gezeigten BGP-Nachrichten wurden mithilfe von _RIPE RIS_ aufgezeichnet, da zwei Router des DFN (AS 680) _Vantage Points_ für _RIPE RIS_ sind.
+
+Die Daten werden geteilt indem sie an einen von _RIPE RIS_ betriebenen Route-Reflektor-Client (kurz: _RRC_) übertragen werden
+und sind sowohl als historische Archive als auch in Echtzeit über einen Live-Feed abrufbar.
+
+=== RIB Dumps
+
+_RIB Dumps_ beinhalten die gesamte Routing-Tabelle eines _RRC_ und werden alle acht Stunden von allen _RCCs_ generiert und als Archiv bereitgestellt.
+
+=== Updates
+
+Abgesehen davon stellt _RIPE RIS_ die empfangenen BGP-Update-Nachrichten zum Download bereit.
+Diese werden in Archivdateien zusammengefasst, welche alle fünf Minuten von allen _RRCs_ generiert werden.
 
 == Shodan <shodan>
 

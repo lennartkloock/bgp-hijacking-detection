@@ -7,7 +7,7 @@ CREATE TABLE routes (
     host SMALLINT NOT NULL, -- e.g. 21 for "rrc21"
     as_path JSONB NOT NULL, -- ordered, origin last
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (prefix, peer_ip, host) -- one route per peering session
+    UNIQUE (prefix, peer_ip, host) -- one route per prefix and peering session
 );
 
 CREATE TABLE moas (
@@ -16,9 +16,4 @@ CREATE TABLE moas (
     updated_at TIMESTAMPTZ NOT NULL,
     https_hosts INET[] DEFAULT ARRAY[]::INET[],
     last_scanned_at TIMESTAMPTZ DEFAULT NULL
-);
-
-CREATE TABLE moas_whitelist (
-    origins BIGINT[] PRIMARY KEY,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

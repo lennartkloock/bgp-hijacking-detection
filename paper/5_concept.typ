@@ -2,7 +2,7 @@
 
 In diesem Kapitel wird ein Konzept zur Erkennung von Prefix-Hijacking-Angriffen in Echtzeit mithilfe von TLS-Zertifikaten vorgestellt.
 
-== Vorgehensweise
+== Vorgehensweise <concept-1>
 
 Zuerst werden MOAS-Konflikte identifiziert, unabhängig davon ob sie gutartig oder bösartig sind, damit anschließend für jeden dieser potenziellen Prefix-Hijacking-Angriffe Daten zur weiteren Einordnung gesammelt werden können.
 Dafür werden echte BGP-Daten verarbeitet, die kontinuierlich in Echtzeit von _RIPE RIS_ (siehe @ripe-ris) empfangen werden.
