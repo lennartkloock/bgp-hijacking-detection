@@ -43,7 +43,7 @@
     #content
   ]
 ][
-  #image(image_path)
+  #image("../" + image_path)
 ]
 
 #slide(title: "Konzept")[

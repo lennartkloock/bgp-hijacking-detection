@@ -11,7 +11,7 @@
       - #stress[Problem: BGP ist ohne Authentifizierung]
         - #stress[Basiert auf gegenseitigem Vertrauen zwischen AS]
     ],
-    hide(image("images/moas.drawio.pdf", height: 15em)),
+    hide(image("../images/moas.drawio.pdf", height: 15em)),
   ),
 )
 
@@ -26,7 +26,7 @@
       - #stress[Ein beliebiges AS kann verkünden, dass es der Ursprung eines beliebigen IP-Präfixes ist]
         - #stress[MOAS-Konflikt]
     ],
-    hide(image("images/moas.drawio.pdf", height: 15em)),
+    hide(image("../images/moas.drawio.pdf", height: 15em)),
   ),
 )
 
@@ -42,7 +42,7 @@
         - MOAS-Konflikt
       - #stress[Teilt das Netzwerk effektiv in zwei Partitionen]
     ],
-    image("images/moas.drawio.pdf", height: 15em),
+    image("../images/moas.drawio.pdf", height: 15em),
   ),
 )
 
@@ -57,6 +57,6 @@
         - Man-in-the-Middle-Angriffe
         - "Klauen" von IP-Adressen zum Verschicken von E-Mail-Spam oder andere illegale Aktivitäten
     ],
-    image("images/moas.drawio.pdf", height: 15em),
+    image("../images/moas.drawio.pdf", height: 15em),
   ),
 )
