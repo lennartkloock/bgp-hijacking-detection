@@ -1,0 +1,41 @@
+name: Concept Slides
+on: push
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    outputs:
+      pre_release: ${{ steps.query.outputs.pre_release }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: typst-community/setup-typst@v4.3.0
+      - name: Compile main.typ
+        run: typst compile slides/concept/main.typ concept_slides.pdf --font-path ./slides/fonts
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: concept_slides
+          path: concept_slides.pdf
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: compile
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: concept_slides
+      - name: Delete old release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete concept-slides-latest --cleanup-tag
+      - name: Create new release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: concept-slides-latest
+          name: Concept Slides
+          files: concept_slides.pdf
+          generate_release_notes: false

@@ -24,14 +24,8 @@
 
 #table-of-contents(title: "Inhalt")
 
-#include "1_recap.typ"
-#include "2_bgp.typ"
-#include "3_prefix_hijacking.typ"
-#include "4_data_sources.typ"
-#include "5_concept.typ"
-
 // Bibliography
 #bibliography-slide(
   title: "Quellen",
-  bibliography("bibliography.yaml")
+  bibliography("../bibliography.yaml")
 )

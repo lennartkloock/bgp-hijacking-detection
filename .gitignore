@@ -3,7 +3,7 @@ target/
 
 # Typst
 paper/*.pdf
-slides/*.pdf
+slides/**/*.pdf
 
 # Local files
 local/
