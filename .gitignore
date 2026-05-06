@@ -2,8 +2,8 @@
 target/
 
 # Typst
-paper/*.pdf
-slides/**/main.pdf
+docs/paper/*.pdf
+docs/slides/**/main.pdf
 
 # Local files
 local/

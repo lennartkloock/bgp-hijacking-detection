@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: typst-community/setup-typst@v4.3.0
       - name: Compile main.typ
-        run: typst compile slides/part_1/main.typ slides_part_1.pdf --root ./slides --font-path ./slides/fonts
+        run: typst compile docs/slides/part_1/main.typ slides_part_1.pdf --root ./docs --font-path ./docs/slides/fonts
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
