@@ -19,13 +19,18 @@
   title: "Echtzeiterkennung von\nPrefix-Hijacking-Angriffen",
   subtitle: [mithilfe von TLS-Zertifikaten – Part 2],
   authors: author,
-  info: [#link("https://github.com/lennartkloock/bgp-hijacking-detection")[github.com/lennartkloock/bgp-hijacking-detection]],
+  info: link("https://github.com/lennartkloock/bgp-hijacking-detection")[github.com/lennartkloock/bgp-hijacking-detection],
 )
 
 #table-of-contents(title: "Inhalt")
 
 #include "1_recap_prefix_hijacking.typ"
 #include "2_recap_concept.typ"
+#include "3_architecture.typ"
+
+// Codeausschnitte
+// Grafana dashboard
+// Bachelorarbeitsthema
 
 // Bibliography
 #bibliography-slide(

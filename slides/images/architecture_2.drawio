@@ -1,0 +1,22 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:149.0) Gecko/20100101 Firefox/149.0">
+  <diagram name="Seite-1" id="imwI0GKlNfZBM2YAuRHa">
+    <mxGraphModel dx="884" dy="585" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ql9dWz97UJgwq_6AMrcd-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;opacity=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" value="" vertex="1">
+          <mxGeometry height="260" width="425" x="210" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="KZtDUltncQvCv9CuqTMt-12" edge="1" parent="1" source="KZtDUltncQvCv9CuqTMt-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="KZtDUltncQvCv9CuqTMt-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="KZtDUltncQvCv9CuqTMt-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1" value="&lt;div&gt;RIPE RIS&lt;/div&gt;&lt;div&gt;(Live)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="100" x="380" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="KZtDUltncQvCv9CuqTMt-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontStyle=1;fontColor=#0066CC;" value="Ingest" vertex="1">
+          <mxGeometry height="50" width="100" x="380" y="260" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
