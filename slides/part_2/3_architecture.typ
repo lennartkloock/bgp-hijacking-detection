@@ -1,7 +1,7 @@
 #import "@preview/typslides:1.3.2": *
 
 #let architecture_image(image_path, content) = cols(columns: (1fr, auto))[
-  #box(height: 17em)[
+  #box(height: 18.25em)[
     #set align(top)
     #content
   ]
