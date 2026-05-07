@@ -2,7 +2,7 @@
 #import "../../data.typ": *
 #import "@preview/typslides:1.3.2": *
 
-#title-slide[Implementierung: Ingest]
+#title-slide[Ingest]
 
 // Aufgaben von Ingest
 // Ingest hat am meisten Zeit in der Entwicklung gebraucht, wir reden mehr über MOAS Analysis
