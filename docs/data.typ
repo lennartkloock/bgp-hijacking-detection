@@ -23,6 +23,24 @@
 #let moas_4 = 5378;
 #let moas_6 = 1076;
 
+#let routes_table = table(
+  columns: 3,
+  align: table_align,
+  table.header[*Wert*][*absolut*][*relativ*],
+  [Anzahl Routen], display_number(routes_total), display_percent(1),
+  "    davon IPv4", display_number(routes_4), display_percent(routes_4 / routes_total),
+  "    davon IPv6", display_number(routes_6), display_percent(routes_6 / routes_total),
+)
+
+#let moas_table = table(
+  columns: 3,
+  align: table_align,
+  table.header[*Wert*][*absolut*][*relativ*],
+  [Anzahl MOAS-Präfixe], display_number(moas_total), display_percent(1),
+  "    davon IPv4", display_number(moas_4), display_percent(moas_4 / moas_total),
+  "    davon IPv6", display_number(moas_6), display_percent(moas_6 / moas_total),
+)
+
 #let moas_routes_table = table(
   columns: 3,
   align: table_align,

@@ -4,6 +4,7 @@
 
 #set document(author: author, title: "Echtzeiterkennung von Prefix-Hijacking-Angriffen mithilfe von TLS-Zertifikaten")
 #set text(lang: "de")
+#set figure(numbering: none)
 
 #show: typslides.with(
   ratio: "16-9",
@@ -29,18 +30,6 @@
 #include "3_architecture.typ"
 #include "4_ingest.typ"
 #include "5_moas_analysis.typ"
-
-// Aufgaben von Ingest
-// Ingest hat am meisten Zeit in der Entwicklung gebraucht, wir reden mehr über MOAS Analysis
-// RIPE RIS genauer: Peers, RRCs
-// Datenbankschema
-// Anzahl BGP-Updates pro Sekunde
-// Anzahl Routen
-// Grafana Dashboard
-// SQL-Query zum Finden von MOAS
-// Anzahl MOAS mit/ohne TLS-Host
-// Beispiel Atlas-Analyse
-// Atlas Messungen zeigen
 
 // Bibliography
 // #bibliography-slide(

@@ -1,8 +1,16 @@
 
-#import "../../data.typ": moas_routes_table, bgp_updates_table
+#import "../../data.typ": *
 #import "@preview/typslides:1.3.2": *
 
 #title-slide[Implementierung: Ingest]
+
+// Aufgaben von Ingest
+// Ingest hat am meisten Zeit in der Entwicklung gebraucht, wir reden mehr über MOAS Analysis
+// RIPE RIS genauer: Peers, RRCs
+// Datenbankschema
+// Anzahl BGP-Updates pro Sekunde
+// Anzahl Routen
+// Grafana Dashboard
 
 #let ris_image(content) = cols(columns: (1fr, auto))[
   #box(height: 12em)[
@@ -123,11 +131,14 @@
   ]
 ]
 
-#set figure(numbering: none)
-
-#slide(title: "Evaluation")[
+#slide(title: "Ingest: Evaluation")[
   #figure(caption: "Zeitraum: 1. April 2026, 18:00 Uhr bis 6. April 2026, 21:00 Uhr (UTC)", bgp_updates_table)
-  #figure(caption: "Stand: 11. April 11:20:00 UTC", moas_routes_table)
+  #hide(figure(caption: "Stand: 11. April 11:20:00 UTC", routes_table))
+]
+
+#slide(title: "Ingest: Evaluation")[
+  #figure(caption: "Zeitraum: 1. April 2026, 18:00 Uhr bis 6. April 2026, 21:00 Uhr (UTC)", bgp_updates_table)
+  #figure(caption: "Stand: 11. April 11:20:00 UTC", routes_table)
 ]
 
 #focus-slide[Grafana Dashboard]
