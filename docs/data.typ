@@ -1,12 +1,14 @@
 #import "util.typ": display_number, display_percent
 
+#let table_align = (x, y) => if (x == 0 or y == 0) { left } else { right }
+
 #let bgp_updates_total = 347833140
 #let bgp_announcements = 329703193
 #let bgp_withdrawals = 18486327
 
 #let bgp_updates_table = table(
   columns: 3,
-  align: left,
+  align: table_align,
   table.header[*Wert*][*absolut*][*relativ*],
   [Anzahl BGP-Updates], display_number(bgp_updates_total), display_percent(1),
   "    davon Announcements", display_number(bgp_announcements), display_percent(bgp_announcements / bgp_updates_total),
@@ -23,7 +25,7 @@
 
 #let moas_routes_table = table(
   columns: 3,
-  align: left,
+  align: table_align,
   table.header[*Wert*][*absolut*][*relativ*],
   [Anzahl Routen], display_number(routes_total), display_percent(1),
   "    davon IPv4", display_number(routes_4), display_percent(routes_4 / routes_total),
@@ -42,7 +44,7 @@
 
 #let moas_origins_table = table(
   columns: 3,
-  align: left,
+  align: table_align,
   table.header[*Origins*][*absolut*][*relativ*],
   [2], display_number(moas_origins_2), display_percent(moas_origins_2 / moas_total),
   [3], display_number(moas_origins_3), display_percent(moas_origins_3 / moas_total),

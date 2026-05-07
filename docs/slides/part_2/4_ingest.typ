@@ -1,4 +1,5 @@
 
+#import "../../data.typ": moas_routes_table, bgp_updates_table
 #import "@preview/typslides:1.3.2": *
 
 #title-slide[Implementierung: Ingest]
@@ -122,8 +123,11 @@
   ]
 ]
 
+#set figure(numbering: none)
+
 #slide(title: "Evaluation")[
-  
+  #figure(caption: "Zeitraum: 1. April 2026, 18:00 Uhr bis 6. April 2026, 21:00 Uhr (UTC)", bgp_updates_table)
+  #figure(caption: "Stand: 11. April 11:20:00 UTC", moas_routes_table)
 ]
 
 #focus-slide[Grafana Dashboard]

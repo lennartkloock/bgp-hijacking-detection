@@ -5,10 +5,6 @@
 
 Folgendes Kapitel beschäftigt sich mit der Auswertung und Interpretation der gesammelten Daten.
 
-#let bgp_updates_total = 347833140
-#let bgp_announcements = 329703193
-#let bgp_withdrawals = 18486327
-
 #figure(
   caption: "BGP-Updates im Zeitraum 1. April 2026, 18:00 Uhr bis zum 6. April 2026, 21:00 Uhr (UTC)",
   bgp_updates_table,
