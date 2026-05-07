@@ -1,4 +1,4 @@
-name: Paper
+name: Slides Part 2
 on: push
 jobs:
   compile:
@@ -8,16 +8,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: typst-community/setup-typst@v4.3.0
-      - id: query
-        name: Query if pre release
-        run: echo "pre_release=$(typst query docs/paper/main.typ "<pre_release>" --root ./docs --field value --one)" >> $GITHUB_OUTPUT
       - name: Compile main.typ
-        run: typst compile docs/paper/main.typ paper.pdf --root ./docs --input is_ci=true
+        run: typst compile docs/slides/part_2/main.typ slides_part_2.pdf --root ./docs --font-path ./docs/slides/fonts
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: paper
-          path: paper.pdf
+          name: slides_part_2
+          path: slides_part_2.pdf
   release:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -29,17 +26,16 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v5
         with:
-          name: paper
+          name: slides_part_2
       - name: Delete old release
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release delete paper-latest --cleanup-tag
+        run: gh release delete slides-part-2-latest --cleanup-tag
       - name: Create new release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: paper-latest
-          name: Paper
-          files: paper.pdf
-          prerelease: ${{ needs.compile.outputs.pre_release }}
+          tag_name: slides-part-2-latest
+          name: Slides Part 2
+          files: slides_part_2.pdf
           generate_release_notes: false

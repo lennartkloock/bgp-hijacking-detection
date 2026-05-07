@@ -1,4 +1,4 @@
-#import "util.typ": display_number, display_percent
+#import "../util.typ": display_number, display_percent
 #import "7_evaluation.typ": bgp_updates_total, moas_total, moas_4, moas_origins_2, at_least_one_host
 
 = Fazit <conclusion>

@@ -14,7 +14,7 @@
       [...], [...], [...], [...],
       [`0.0.0.0/0`], [-], [`203.0.113.2`], [`eth1`],
     ),
-    image("images/simple_bgp.drawio.pdf", height: 8.5em),
+    image("../images/simple_bgp.drawio.pdf", height: 8.5em),
   )
 ]
 
@@ -53,19 +53,19 @@
   #set align(top)
   - Routing-Tabellen werden durch BGP-Update-Nachrichten aktualisiert
   - #stress[Echte BGP-Updates vom 27. Dezember 2025:]
-  #align(center, image("images/bgp_updates_1.drawio.pdf", height: 15em))
+  #align(center, image("../images/bgp_updates_1.drawio.pdf", height: 15em))
 ]
 
 #slide(title: "BGP")[
   #set align(top)
   - Routing-Tabellen werden durch BGP-Update-Nachrichten aktualisiert
   - #stress[Echte BGP-Updates vom 27. Dezember 2025:]
-  #align(center, image("images/bgp_updates_2.drawio.pdf", height: 15em))
+  #align(center, image("../images/bgp_updates_2.drawio.pdf", height: 15em))
 ]
 
 #slide(title: "BGP")[
   #set align(top)
   - Routing-Tabellen werden durch BGP-Update-Nachrichten aktualisiert
   - #stress[Echte BGP-Updates vom 27. Dezember 2025:]
-  #align(center, image("images/bgp_updates_3.drawio.pdf", height: 15em))
+  #align(center, image("../images/bgp_updates_3.drawio.pdf", height: 15em))
 ]

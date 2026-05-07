@@ -5,7 +5,7 @@
 #let image_example(image_path, caption_text, content) = [
   #cols(columns: (1fr, 1fr))[
     #set align(center + horizon)
-    #box(height: 80%, image(image_path))
+    #box(height: 80%, image("../" + image_path))
   ][
     #set align(top + left)
     #content
