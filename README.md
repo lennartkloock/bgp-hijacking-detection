@@ -2,7 +2,7 @@
 
 ***Echtzeiterkennung von Prefix-Hijacking-Angriffen mithilfe von TLS-Zertifikaten***
 
-University project (mostly in German)
+This university project is a precursor to my bachelor's thesis which will be published in November 2026.
 
 ## 📄 Download
 
